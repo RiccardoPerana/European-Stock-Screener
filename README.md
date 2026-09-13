@@ -62,31 +62,6 @@ the only thing that determines whether a company gets flagged is whether
 its own published financial statements say it is priced below its
 calculated fair value.
 
-## Data availability and why this is only now possible
-The valuation model requires five consecutive fiscal years of standardized,
-machine-readable financial statements per company. That data source did not
-exist in usable form until recently: the European Single Electronic Format
-(ESEF) only became mandatory for annual financial reports for fiscal years
-starting on or after 1 January 2020. Five consecutive years of ESEF filings
-per company — the minimum this model requires — has therefore only recently
-become available at any meaningful scale, which is what makes this kind of
-systematic, full-universe screen possible for close to the first time.
-
-<source media="(prefers-color-scheme: dark)" srcset="screenshots/chart.png">
-
-Coverage is expected to expand substantially in the coming years, for two
-reasons. First, the number of companies filing under ESEF has grown each
-year since the mandate took effect, as more issuers and jurisdictions came
-into scope; each additional year of filings both adds new companies to the
-five-year-eligible universe and extends the history of companies already in
-it. Second, the EU's planned European Single Access Point — a centralized
-portal for regulated company filings across the Union — is expected to
-begin deployment in 2027, which should materially improve both the
-discoverability and consistency of the underlying filings this tool depends
-on. The addressable universe for this screen is therefore expected to grow
-significantly from its current size over the next several years, largely
-independent of any change to the tool itself.
-
 ## Screenshots
 
 ### Dashboard
@@ -348,6 +323,33 @@ tools/      R&D probes and diagnostic utilities
 packaging/  the portable-executable build configuration
 output/     generated report exports
 ```
+
+
+## Data availability and why this is only now possible
+The valuation model requires five consecutive fiscal years of standardized,
+machine-readable financial statements per company. That data source did not
+exist in usable form until recently: the European Single Electronic Format
+(ESEF) only became mandatory for annual financial reports for fiscal years
+starting on or after 1 January 2020. Five consecutive years of ESEF filings
+per company — the minimum this model requires — has therefore only recently
+become available at any meaningful scale, which is what makes this kind of
+systematic, full-universe screen possible for close to the first time.
+
+![European companies filing ESEF by fiscal year](screenshots/chart.svg)
+
+Coverage is expected to expand substantially in the coming years, for two
+reasons. First, the number of companies filing under ESEF has grown each
+year since the mandate took effect, as more issuers and jurisdictions came
+into scope; each additional year of filings both adds new companies to the
+five-year-eligible universe and extends the history of companies already in
+it. Second, the EU's planned European Single Access Point — a centralized
+portal for regulated company filings across the Union — is expected to
+begin deployment in 2027, which should materially improve both the
+discoverability and consistency of the underlying filings this tool depends
+on. The addressable universe for this screen is therefore expected to grow
+significantly from its current size over the next several years, largely
+independent of any change to the tool itself.
+
 
 ## License
 
