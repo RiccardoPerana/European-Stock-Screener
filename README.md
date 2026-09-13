@@ -7,7 +7,7 @@
   <source media="(prefers-color-scheme: dark)" srcset="screenshots/presentation.png">
   <source media="(prefers-color-scheme: light)" srcset="screenshots/presentation.png">
   <img alt="The Results page: a research queue of undervalued companies ranked by upside, with the funnel showing how the full universe narrowed to that queue."
-       src="screenshots/results.png" width="900">
+       src="screenshots/presentation.png" width="900">
 </picture>
 
 <sub>The output of a screening run — whatever the model found, not a curated list.</sub>
