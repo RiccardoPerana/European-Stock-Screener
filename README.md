@@ -133,15 +133,28 @@ record of what changed at the most recent scan.
 
 ---
 
-## Requirements
+## Getting started
+
+### For most people (Windows) — no Python, no terminal
+
+You should already have the `StockScreen` folder (this is
+`packaging/dist/` — see "Building the portable executable" below for how
+it gets produced). Just double-click `StockScreen.exe` inside it. That
+opens `http://127.0.0.1:8765/` in your browser — the same dashboard
+described below. The folder is self-contained: copy it anywhere, and
+nothing needs to be installed on the machine first.
+
+The first run still needs the coverage/extract/identity/prices/shares
+pipeline stages run once (from the Dashboard's "Run Everything" button) to
+populate real data, same as a fresh checkout would.
+
+### Running from source (for development)
 
 - **Python 3.10+**
 - A spreadsheet engine to recalculate the model — one of:
   - Microsoft Excel (Windows), via `pywin32`, or
   - LibreOffice, with `soffice` on `PATH` (any operating system)
 - `pip install -r requirements.txt`
-
-## Quick start — the dashboard
 
 ```
 python gui/app.py
@@ -161,9 +174,10 @@ Run it from the repository root. Paths (`financials.db`, `parameters.json`,
 the template, `valuations/`) are resolved relative to the project, not the
 working directory, but a few ingestion helpers still assume the root.
 
-### Portable build
+### Building the portable executable
 
-A standalone Windows executable can be built with:
+This is a developer step — end users never run it. To produce a fresh
+`StockScreen.exe` to hand out (after a code or config change):
 
 ```
 python packaging/build_dist.py

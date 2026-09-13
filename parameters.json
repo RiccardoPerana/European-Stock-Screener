@@ -22,7 +22,7 @@
       "cell": "B49",
       "value": 0.0423,
       "source": "Damodaran, implied equity risk premium for a mature market",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "note": "Derived as the total ERP of a zero-CRP country, which is the definition of the mature-market premium."
     },
     "long_run_nominal_growth": {
@@ -43,121 +43,121 @@
       "crp": 0.003555,
       "tax_rate": 0.23,
       "source": "Damodaran ctryprem.xlsx",
-      "as_of": "2026-09-12"
+      "as_of": "2026-09-13"
     },
     "BE": {
       "crp": 0.00776,
       "tax_rate": 0.25,
       "source": "Damodaran ctryprem.xlsx",
-      "as_of": "2026-09-12"
+      "as_of": "2026-09-13"
     },
     "CY": {
       "crp": 0.01552,
       "tax_rate": 0.125,
       "source": "Damodaran ctryprem.xlsx",
-      "as_of": "2026-09-12"
+      "as_of": "2026-09-13"
     },
     "DE": {
       "crp": 0.0,
       "tax_rate": 0.2993,
       "source": "Damodaran ctryprem.xlsx",
-      "as_of": "2026-09-12"
+      "as_of": "2026-09-13"
     },
     "EE": {
       "crp": 0.009129,
       "tax_rate": 0.2,
       "source": "Damodaran ctryprem.xlsx",
-      "as_of": "2026-09-12"
+      "as_of": "2026-09-13"
     },
     "ES": {
       "crp": 0.01552,
       "tax_rate": 0.25,
       "source": "Damodaran ctryprem.xlsx",
-      "as_of": "2026-09-12"
+      "as_of": "2026-09-13"
     },
     "FI": {
       "crp": 0.003555,
       "tax_rate": 0.2,
       "source": "Damodaran ctryprem.xlsx",
-      "as_of": "2026-09-12"
+      "as_of": "2026-09-13"
     },
     "FR": {
       "crp": 0.00776,
       "tax_rate": 0.2583,
       "source": "Damodaran ctryprem.xlsx",
-      "as_of": "2026-09-12"
+      "as_of": "2026-09-13"
     },
     "GR": {
       "crp": 0.028454,
       "tax_rate": 0.22,
       "source": "Damodaran ctryprem.xlsx",
-      "as_of": "2026-09-12"
+      "as_of": "2026-09-13"
     },
     "HR": {
       "crp": 0.01552,
       "tax_rate": 0.18,
       "source": "Damodaran ctryprem.xlsx",
-      "as_of": "2026-09-12"
+      "as_of": "2026-09-13"
     },
     "IE": {
       "crp": 0.00776,
       "tax_rate": 0.125,
       "source": "Damodaran ctryprem.xlsx",
-      "as_of": "2026-09-12"
+      "as_of": "2026-09-13"
     },
     "IT": {
       "crp": 0.02465,
       "tax_rate": 0.2781,
       "source": "Damodaran ctryprem.xlsx",
-      "as_of": "2026-09-12"
+      "as_of": "2026-09-13"
     },
     "LT": {
       "crp": 0.010955,
       "tax_rate": 0.15,
       "source": "Damodaran ctryprem.xlsx",
-      "as_of": "2026-09-12"
+      "as_of": "2026-09-13"
     },
     "LU": {
       "crp": 0.0,
       "tax_rate": 0.2494,
       "source": "Damodaran ctryprem.xlsx",
-      "as_of": "2026-09-12"
+      "as_of": "2026-09-13"
     },
     "LV": {
       "crp": 0.01552,
       "tax_rate": 0.2,
       "source": "Damodaran ctryprem.xlsx",
-      "as_of": "2026-09-12"
+      "as_of": "2026-09-13"
     },
     "MT": {
       "crp": 0.010955,
       "tax_rate": 0.35,
       "source": "Damodaran ctryprem.xlsx",
-      "as_of": "2026-09-12"
+      "as_of": "2026-09-13"
     },
     "NL": {
       "crp": 0.0,
       "tax_rate": 0.258,
       "source": "Damodaran ctryprem.xlsx",
-      "as_of": "2026-09-12"
+      "as_of": "2026-09-13"
     },
     "PT": {
       "crp": 0.01552,
       "tax_rate": 0.315,
       "source": "Damodaran ctryprem.xlsx",
-      "as_of": "2026-09-12"
+      "as_of": "2026-09-13"
     },
     "SI": {
       "crp": 0.01552,
       "tax_rate": 0.22,
       "source": "Damodaran ctryprem.xlsx",
-      "as_of": "2026-09-12"
+      "as_of": "2026-09-13"
     },
     "SK": {
       "crp": 0.01552,
       "tax_rate": 0.21,
       "source": "Damodaran ctryprem.xlsx",
-      "as_of": "2026-09-12"
+      "as_of": "2026-09-13"
     }
   },
   "industries": {
@@ -172,7 +172,7 @@
       "unlevered_beta": 0.6559108704734559,
       "ebit_margin": 0.11259892250088147,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.5089609803619859,
       "sales_to_capital": 5.4160059235891165
     },
@@ -180,7 +180,7 @@
       "unlevered_beta": 1.1834398071094316,
       "ebit_margin": 0.10413301214018039,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.19764578092921203,
       "sales_to_capital": 3.2600398165369846
     },
@@ -188,7 +188,7 @@
       "unlevered_beta": 0.7493386697170276,
       "ebit_margin": 0.10504839601986621,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.13170531730204219,
       "sales_to_capital": 1.5758842650926148
     },
@@ -196,7 +196,7 @@
       "unlevered_beta": 0.7427298131365652,
       "ebit_margin": 0.1874801066217236,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.21590250316259607,
       "sales_to_capital": 1.4126878888357388
     },
@@ -204,7 +204,7 @@
       "unlevered_beta": 0.7274215661021933,
       "ebit_margin": 0.0389955592102058,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.03672504931457592,
       "sales_to_capital": 1.061911113042374
     },
@@ -212,7 +212,7 @@
       "unlevered_beta": 0.6839340979503599,
       "ebit_margin": 0.048259510438319254,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.09165239472576614,
       "sales_to_capital": 3.0450919316264087
     },
@@ -220,21 +220,21 @@
       "unlevered_beta": 0.33891631696804275,
       "ebit_margin": 1.162518729743954e-05,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "sales_to_capital": 0.12458696094603833
     },
     "Banks (Regional)": {
       "unlevered_beta": 0.12610921307689138,
       "ebit_margin": 0.0,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "sales_to_capital": 0.0977239719437445
     },
     "Beverage (Alcoholic)": {
       "unlevered_beta": 0.4206520286550585,
       "ebit_margin": 0.19638096468059937,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.10762103084869144,
       "sales_to_capital": 0.6443490068426083
     },
@@ -242,7 +242,7 @@
       "unlevered_beta": 0.33923781542170806,
       "ebit_margin": 0.1239129315427231,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.17582849934494985,
       "sales_to_capital": 1.7166038199225064
     },
@@ -250,7 +250,7 @@
       "unlevered_beta": 0.7586508066996455,
       "ebit_margin": 0.08212727277796832,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.15451257422513381,
       "sales_to_capital": 2.4076670195470147
     },
@@ -258,14 +258,14 @@
       "unlevered_beta": 0.46683686210872544,
       "ebit_margin": 0.007321623347883443,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "sales_to_capital": 1.7382469796084212
     },
     "Building Materials": {
       "unlevered_beta": 0.9065982169217844,
       "ebit_margin": 0.12362145481713885,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.2196881443702467,
       "sales_to_capital": 2.280431668889983
     },
@@ -273,7 +273,7 @@
       "unlevered_beta": 0.6847861161853429,
       "ebit_margin": 0.08580809963816209,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.2905655881061073,
       "sales_to_capital": 4.3830177147434375
     },
@@ -281,7 +281,7 @@
       "unlevered_beta": 0.6827439392843644,
       "ebit_margin": -0.12771096462537113,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": -0.03894735401458487,
       "sales_to_capital": 0.3063741883722281
     },
@@ -289,7 +289,7 @@
       "unlevered_beta": 0.46087577218936465,
       "ebit_margin": 0.028363808716745684,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.01863596516966062,
       "sales_to_capital": 0.7253882593504962
     },
@@ -297,7 +297,7 @@
       "unlevered_beta": 0.9974907323683732,
       "ebit_margin": 0.04445684937303223,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.04512955865450766,
       "sales_to_capital": 1.2374422498895474
     },
@@ -305,7 +305,7 @@
       "unlevered_beta": 0.971509908122841,
       "ebit_margin": 0.10834027548831147,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.10724746854801773,
       "sales_to_capital": 1.2085735726403908
     },
@@ -313,7 +313,7 @@
       "unlevered_beta": 0.6094930796549229,
       "ebit_margin": 0.035610208695424916,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.014664154105397266,
       "sales_to_capital": 0.45173446462912115
     },
@@ -321,7 +321,7 @@
       "unlevered_beta": 0.8402503556637041,
       "ebit_margin": 0.08461342070415973,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.3531538219536814,
       "sales_to_capital": 5.6519426285333605
     },
@@ -329,7 +329,7 @@
       "unlevered_beta": 1.051256229066928,
       "ebit_margin": 0.10405277175873358,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.14939117548553962,
       "sales_to_capital": 2.019728309782514
     },
@@ -337,7 +337,7 @@
       "unlevered_beta": 0.8023060480573526,
       "ebit_margin": 0.09496542258715947,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.10753020545514828,
       "sales_to_capital": 1.5141645121395575
     },
@@ -345,7 +345,7 @@
       "unlevered_beta": 0.7917716005813223,
       "ebit_margin": 0.1084756800854431,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.06630654150731158,
       "sales_to_capital": 0.7791598020124284
     },
@@ -353,7 +353,7 @@
       "unlevered_beta": 1.0731524820649236,
       "ebit_margin": 0.057707706730044495,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.033713487541740424,
       "sales_to_capital": 0.5866062827880745
     },
@@ -361,7 +361,7 @@
       "unlevered_beta": 1.048807638774995,
       "ebit_margin": 0.26200535769484484,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.18531129259274276,
       "sales_to_capital": 1.1200743255872956
     },
@@ -369,7 +369,7 @@
       "unlevered_beta": 0.4615999312582754,
       "ebit_margin": 0.13462510247691747,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.1665576919229589,
       "sales_to_capital": 1.8462720741280243
     },
@@ -377,7 +377,7 @@
       "unlevered_beta": 1.005543051293193,
       "ebit_margin": 0.11249280038635748,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.28293873839610273,
       "sales_to_capital": 3.695945116778052
     },
@@ -385,7 +385,7 @@
       "unlevered_beta": 1.213632759524474,
       "ebit_margin": 0.1173078136047836,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.09559904242806065,
       "sales_to_capital": 1.3058923090304624
     },
@@ -393,7 +393,7 @@
       "unlevered_beta": 1.0004611290925756,
       "ebit_margin": 0.12783527306336062,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.12487702363576184,
       "sales_to_capital": 1.264678193032735
     },
@@ -401,7 +401,7 @@
       "unlevered_beta": 0.6784444382060281,
       "ebit_margin": 0.059012463299113235,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.16493876895728063,
       "sales_to_capital": 3.369286725957937
     },
@@ -409,7 +409,7 @@
       "unlevered_beta": 0.6712044977401687,
       "ebit_margin": 0.0849384446104766,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.07410942241496286,
       "sales_to_capital": 1.1159445156608596
     },
@@ -417,7 +417,7 @@
       "unlevered_beta": 0.7187261108023951,
       "ebit_margin": 0.06405930540549658,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.11646920290256818,
       "sales_to_capital": 1.7547929011003793
     },
@@ -425,7 +425,7 @@
       "unlevered_beta": 0.2816911031050271,
       "ebit_margin": 0.07464171936382917,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.05831123705283598,
       "sales_to_capital": 1.019224463443937
     },
@@ -433,14 +433,14 @@
       "unlevered_beta": 0.31147079974393804,
       "ebit_margin": 0.09057994018773798,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "sales_to_capital": 0.16088400281332021
     },
     "Food Processing": {
       "unlevered_beta": 0.3673975841207476,
       "ebit_margin": 0.09369403452610311,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.1474400022875708,
       "sales_to_capital": 1.8762216167112236
     },
@@ -448,7 +448,7 @@
       "unlevered_beta": 0.3349867915761359,
       "ebit_margin": 0.010481237770592775,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.06107557552589179,
       "sales_to_capital": 7.013726172394639
     },
@@ -456,7 +456,7 @@
       "unlevered_beta": 0.3448802307773491,
       "ebit_margin": 0.0362375489007757,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.05812089864724443,
       "sales_to_capital": 2.0759261315969426
     },
@@ -464,7 +464,7 @@
       "unlevered_beta": 0.6033119711072635,
       "ebit_margin": 0.11628163215971579,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.08098877180569838,
       "sales_to_capital": 0.8231131487726756
     },
@@ -472,7 +472,7 @@
       "unlevered_beta": 0.43558228948259614,
       "ebit_margin": 0.16300724577769407,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.05513518211053032,
       "sales_to_capital": 0.37982735822186764
     },
@@ -480,7 +480,7 @@
       "unlevered_beta": 1.0991070641946752,
       "ebit_margin": 0.1379076185214453,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.14216240419818352,
       "sales_to_capital": 1.4177771843539917
     },
@@ -488,7 +488,7 @@
       "unlevered_beta": 0.605922166262117,
       "ebit_margin": 0.07011033231159032,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.12627917296894572,
       "sales_to_capital": 2.249721851168987
     },
@@ -496,7 +496,7 @@
       "unlevered_beta": 1.0401633759087279,
       "ebit_margin": 0.13492142324470807,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.1373221410509644,
       "sales_to_capital": 1.2149037559681903
     },
@@ -504,7 +504,7 @@
       "unlevered_beta": 1.2526717937047733,
       "ebit_margin": 0.09846897214317936,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.08717950781193934,
       "sales_to_capital": 1.0750544724203104
     },
@@ -512,7 +512,7 @@
       "unlevered_beta": 0.28704125585115775,
       "ebit_margin": 0.06550687423789833,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.04834912106613593,
       "sales_to_capital": 1.0437445783910393
     },
@@ -520,7 +520,7 @@
       "unlevered_beta": 0.7136151147662427,
       "ebit_margin": 0.14128865205424468,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.20544454906208173,
       "sales_to_capital": 1.7619095071843063
     },
@@ -528,7 +528,7 @@
       "unlevered_beta": 0.6917992934844861,
       "ebit_margin": 0.17586403264157785,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.25347801708087264,
       "sales_to_capital": 1.8497784625975193
     },
@@ -536,7 +536,7 @@
       "unlevered_beta": 0.3768782812964376,
       "ebit_margin": 0.09364038617037289,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.2500282493389675,
       "sales_to_capital": 3.318191252459301
     },
@@ -544,7 +544,7 @@
       "unlevered_beta": 0.6262906384060654,
       "ebit_margin": 0.14830977619312294,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.24556405806665307,
       "sales_to_capital": 2.08266893377912
     },
@@ -552,7 +552,7 @@
       "unlevered_beta": 0.4758107873552664,
       "ebit_margin": 0.16904398465268458,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.14702993544760404,
       "sales_to_capital": 1.0708803889598495
     },
@@ -560,7 +560,7 @@
       "unlevered_beta": 0.4976762524631054,
       "ebit_margin": 0.2055675084660644,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.1695600383424429,
       "sales_to_capital": 1.0335016751356874
     },
@@ -568,7 +568,7 @@
       "unlevered_beta": 0.5139464389612406,
       "ebit_margin": 0.22735911494284355,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.07548400421667939,
       "sales_to_capital": 0.35881008404033843
     },
@@ -576,7 +576,7 @@
       "unlevered_beta": 1.0286505477828145,
       "ebit_margin": 0.11711928708336482,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.18343718799038822,
       "sales_to_capital": 2.100507277340425
     },
@@ -584,7 +584,7 @@
       "unlevered_beta": 0.9082551001401951,
       "ebit_margin": 0.07224667040449052,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.12199299050379689,
       "sales_to_capital": 1.8160297713012123
     },
@@ -592,7 +592,7 @@
       "unlevered_beta": 0.49367036138468157,
       "ebit_margin": 0.08178482845554294,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.1525809129123385,
       "sales_to_capital": 2.203666954885562
     },
@@ -600,7 +600,7 @@
       "unlevered_beta": 0.3781198891666867,
       "ebit_margin": 0.21350881309132977,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.17042975983835443,
       "sales_to_capital": 1.351549629449356
     },
@@ -608,7 +608,7 @@
       "unlevered_beta": 0.5761441818991837,
       "ebit_margin": 0.38206894273779063,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.35598919262036666,
       "sales_to_capital": 1.0462348032483277
     },
@@ -616,7 +616,7 @@
       "unlevered_beta": 0.44245252436421656,
       "ebit_margin": 0.19265780662790888,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.08932040339225365,
       "sales_to_capital": 0.50341903508809
     },
@@ -624,7 +624,7 @@
       "unlevered_beta": 0.6930668107250426,
       "ebit_margin": 0.06804782783949481,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.11372536605883717,
       "sales_to_capital": 1.8933034380589302
     },
@@ -632,7 +632,7 @@
       "unlevered_beta": 0.5213331116640024,
       "ebit_margin": 0.07404512074835722,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.09609461533686932,
       "sales_to_capital": 1.486052767679795
     },
@@ -640,7 +640,7 @@
       "unlevered_beta": 0.5177015172073867,
       "ebit_margin": 0.06210757070086071,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.04252745115632007,
       "sales_to_capital": 0.7717601454285044
     },
@@ -648,7 +648,7 @@
       "unlevered_beta": 0.4240770649955196,
       "ebit_margin": 0.14388422097870784,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.10065075463923492,
       "sales_to_capital": 0.9025072674250679
     },
@@ -656,7 +656,7 @@
       "unlevered_beta": 0.9163380842329861,
       "ebit_margin": 0.20818561980139963,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.1517881328561717,
       "sales_to_capital": 0.7891926109106963
     },
@@ -664,7 +664,7 @@
       "unlevered_beta": 0.47721000833922406,
       "ebit_margin": 0.07516613095158166,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.12867078618315317,
       "sales_to_capital": 2.0802427761434448
     },
@@ -672,7 +672,7 @@
       "unlevered_beta": 0.3806623412522149,
       "ebit_margin": 0.5015160178636068,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.04019503442940416,
       "sales_to_capital": 0.09078612745291983
     },
@@ -680,7 +680,7 @@
       "unlevered_beta": 0.3399157847089385,
       "ebit_margin": 0.05335576053383025,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.03712229825108549,
       "sales_to_capital": 0.8150337642686385
     },
@@ -688,7 +688,7 @@
       "unlevered_beta": 0.3407004215022011,
       "ebit_margin": 0.13353269413232385,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.01639484941111548,
       "sales_to_capital": 0.14025336598483837
     },
@@ -696,7 +696,7 @@
       "unlevered_beta": 0.32092705505031416,
       "ebit_margin": 0.37646365625857653,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.03297858561701157,
       "sales_to_capital": 0.10113618870306684
     },
@@ -704,7 +704,7 @@
       "unlevered_beta": 0.8497580271870862,
       "ebit_margin": 0.11855186542551532,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.13318706444375294,
       "sales_to_capital": 1.385141189385062
     },
@@ -712,7 +712,7 @@
       "unlevered_beta": 1.0558485711216614,
       "ebit_margin": 0.143212405088841,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.2364619332833937,
       "sales_to_capital": 2.165785508200431
     },
@@ -720,7 +720,7 @@
       "unlevered_beta": 0.5494827735360511,
       "ebit_margin": 0.05549820395957879,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.18014488427560363,
       "sales_to_capital": 3.8786401300163553
     },
@@ -728,7 +728,7 @@
       "unlevered_beta": 0.8063517493467183,
       "ebit_margin": 0.024448914549770596,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.08674150831729856,
       "sales_to_capital": 4.067065447155724
     },
@@ -736,7 +736,7 @@
       "unlevered_beta": 0.82089925104202,
       "ebit_margin": 0.05410856692241939,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.09551114942956646,
       "sales_to_capital": 2.2014752002760427
     },
@@ -744,7 +744,7 @@
       "unlevered_beta": 0.6197372046148745,
       "ebit_margin": 0.08477805222938119,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.10220846273039408,
       "sales_to_capital": 1.4378711784001255
     },
@@ -752,7 +752,7 @@
       "unlevered_beta": 0.7933076339413696,
       "ebit_margin": 0.04306716533989839,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.06446843608910052,
       "sales_to_capital": 1.7275112965320418
     },
@@ -760,7 +760,7 @@
       "unlevered_beta": 0.6999211909355953,
       "ebit_margin": 0.03545273619536857,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.10036750868108366,
       "sales_to_capital": 3.7088440103998184
     },
@@ -768,7 +768,7 @@
       "unlevered_beta": 0.330734402100846,
       "ebit_margin": 0.6135234379208738,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.05492721632279415,
       "sales_to_capital": 0.10459001725317923
     },
@@ -776,7 +776,7 @@
       "unlevered_beta": 1.0075214739156937,
       "ebit_margin": 0.0792199713473343,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.2114346552961282,
       "sales_to_capital": 3.1465761733961517
     },
@@ -784,7 +784,7 @@
       "unlevered_beta": 0.584853413978433,
       "ebit_margin": 0.06468603069941593,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.08538486676799882,
       "sales_to_capital": 1.7152067031681641
     },
@@ -792,7 +792,7 @@
       "unlevered_beta": 1.1525080527467373,
       "ebit_margin": 0.14343628466115163,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.09518969932873782,
       "sales_to_capital": 1.0253668585871754
     },
@@ -800,7 +800,7 @@
       "unlevered_beta": 1.6578947449692338,
       "ebit_margin": 0.3161477380310273,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.32701957294659717,
       "sales_to_capital": 2.0292179142451636
     },
@@ -808,7 +808,7 @@
       "unlevered_beta": 0.6547924989048411,
       "ebit_margin": 0.09489156639492806,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.09770143621958068,
       "sales_to_capital": 1.0706521786884684
     },
@@ -816,7 +816,7 @@
       "unlevered_beta": 1.0351491348847341,
       "ebit_margin": 0.08034183086874165,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.13145552857657716,
       "sales_to_capital": 1.8682551017898326
     },
@@ -824,7 +824,7 @@
       "unlevered_beta": 0.9971974161076943,
       "ebit_margin": 0.252031536325723,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.23375338340182578,
       "sales_to_capital": 1.071035587162347
     },
@@ -832,7 +832,7 @@
       "unlevered_beta": 0.6175586284921113,
       "ebit_margin": 0.13418151121829347,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.19177028103667848,
       "sales_to_capital": 1.8313259815634753
     },
@@ -840,7 +840,7 @@
       "unlevered_beta": 0.911030691900097,
       "ebit_margin": 0.19326896045741532,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.23184579015259307,
       "sales_to_capital": 2.6034157941251563
     },
@@ -848,7 +848,7 @@
       "unlevered_beta": 0.6924359692798523,
       "ebit_margin": 0.015937868169515597,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.020526101860812947,
       "sales_to_capital": 1.476844595603764
     },
@@ -856,7 +856,7 @@
       "unlevered_beta": 0.3426451676850168,
       "ebit_margin": 0.1300409524080693,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.06282995755833184,
       "sales_to_capital": 0.5906468230004868
     },
@@ -864,7 +864,7 @@
       "unlevered_beta": 0.6677151227609983,
       "ebit_margin": 0.07181407459070045,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.08347514127911092,
       "sales_to_capital": 2.7655319171794956
     },
@@ -872,7 +872,7 @@
       "unlevered_beta": 0.43114074991789325,
       "ebit_margin": 0.16200770833288833,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.09897652669181198,
       "sales_to_capital": 0.7565115588023656
     },
@@ -880,7 +880,7 @@
       "unlevered_beta": 0.14710673476933472,
       "ebit_margin": 0.3044248652551364,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.1291009658666117,
       "sales_to_capital": 0.5428813231937953
     },
@@ -888,7 +888,7 @@
       "unlevered_beta": 0.4923078763877582,
       "ebit_margin": 0.0720907471484188,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.08185603692375731,
       "sales_to_capital": 1.382256087654434
     },
@@ -896,7 +896,7 @@
       "unlevered_beta": 0.5061607276665048,
       "ebit_margin": -0.014328441620267834,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.013510514893708442,
       "sales_to_capital": 0.937077930477446
     },
@@ -904,7 +904,7 @@
       "unlevered_beta": 0.6095495011298123,
       "ebit_margin": 0.03704214974037786,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.08647951719775196,
       "sales_to_capital": 2.866705788463735
     },
@@ -912,7 +912,7 @@
       "unlevered_beta": 0.37648705754230977,
       "ebit_margin": 0.11783612921396931,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.1253877324593472,
       "sales_to_capital": 1.3507066018221383
     },
@@ -920,7 +920,7 @@
       "unlevered_beta": 0.42748647620673375,
       "ebit_margin": 0.2749538484743795,
       "source": "Damodaran European industry datasets",
-      "as_of": "2026-09-12",
+      "as_of": "2026-09-13",
       "roic": 0.08098877180569838,
       "sales_to_capital": 0.25098907817630045
     }

@@ -1,0 +1,620 @@
+{
+  "_comment": "Wikidata industry label -> Damodaran industry name. Written once, reused every January. Wikidata says 'petroleum industry'; Damodaran says 'Oil/Gas (Integrated)'.",
+  "_rank": "Lower rank wins when a company carries several labels. Eni is tagged both 'petroleum industry' (rank 1) and 'energy industry' (rank 5), and the specific one must win. Anything resolved at rank 5 or worse is marked for review, because a generic label is a guess dressed as an answer.",
+  "_validation": "Every target name is checked against parameters.json on apply. A name that does not exist there is reported, never silently dropped.",
+  "map": {
+    "semiconductor industry": {
+      "to": "Semiconductor",
+      "rank": 1
+    },
+    "semiconductor device fabrication": {
+      "to": "Semiconductor Equip",
+      "rank": 1
+    },
+    "petroleum industry": {
+      "to": "Oil/Gas (Integrated)",
+      "rank": 1
+    },
+    "natural gas industry": {
+      "to": "Oil/Gas Distribution",
+      "rank": 2
+    },
+    "gas industry": {
+      "to": "Oil/Gas Distribution",
+      "rank": 6
+    },
+    "oil and gas industry": {
+      "to": "Oil/Gas (Integrated)",
+      "rank": 1
+    },
+    "brewing industry": {
+      "to": "Beverage (Alcoholic)",
+      "rank": 1
+    },
+    "beverage industry": {
+      "to": "Beverage (Soft)",
+      "rank": 4
+    },
+    "winemaking": {
+      "to": "Beverage (Alcoholic)",
+      "rank": 1
+    },
+    "distillation": {
+      "to": "Beverage (Alcoholic)",
+      "rank": 1
+    },
+    "automotive industry": {
+      "to": "Auto & Truck",
+      "rank": 1
+    },
+    "vehicle industry": {
+      "to": "Auto & Truck",
+      "rank": 2
+    },
+    "vehicle construction": {
+      "to": "Auto & Truck",
+      "rank": 3
+    },
+    "automotive parts": {
+      "to": "Auto Parts",
+      "rank": 1
+    },
+    "tire manufacturing": {
+      "to": "Rubber& Tires",
+      "rank": 1
+    },
+    "fast fashion": {
+      "to": "Retail (Special Lines)",
+      "rank": 1
+    },
+    "clothing industry": {
+      "to": "Apparel",
+      "rank": 3
+    },
+    "textile industry": {
+      "to": "Apparel",
+      "rank": 3
+    },
+    "footwear industry": {
+      "to": "Shoe",
+      "rank": 1
+    },
+    "retail": {
+      "to": "Retail (General)",
+      "rank": 5
+    },
+    "grocery store": {
+      "to": "Retail (Grocery and Food)",
+      "rank": 1
+    },
+    "supermarket": {
+      "to": "Retail (Grocery and Food)",
+      "rank": 1
+    },
+    "e-commerce": {
+      "to": "Retail (Special Lines)",
+      "rank": 2
+    },
+    "mail order": {
+      "to": "Retail (Special Lines)",
+      "rank": 2
+    },
+    "pharmacy": {
+      "to": "Retail (Special Lines)",
+      "rank": 2
+    },
+    "human resource management": {
+      "to": "Business & Consumer Services",
+      "rank": 2
+    },
+    "employment services industry": {
+      "to": "Business & Consumer Services",
+      "rank": 2
+    },
+    "service sector": {
+      "to": "Business & Consumer Services",
+      "rank": 9
+    },
+    "consulting": {
+      "to": "Business & Consumer Services",
+      "rank": 3
+    },
+    "electrical industry": {
+      "to": "Electrical Equipment",
+      "rank": 3
+    },
+    "electronics industry": {
+      "to": "Electronics (General)",
+      "rank": 3
+    },
+    "consumer electronics industry": {
+      "to": "Electronics (Consumer & Office)",
+      "rank": 1
+    },
+    "electric power transmission": {
+      "to": "Utility (General)",
+      "rank": 2
+    },
+    "electric power distribution": {
+      "to": "Utility (General)",
+      "rank": 2
+    },
+    "energy supply": {
+      "to": "Power",
+      "rank": 3
+    },
+    "electricity generation": {
+      "to": "Power",
+      "rank": 1
+    },
+    "renewable energy": {
+      "to": "Green & Renewable Energy",
+      "rank": 1
+    },
+    "energy industry": {
+      "to": "Power",
+      "rank": 5
+    },
+    "water industry": {
+      "to": "Utility (Water)",
+      "rank": 1
+    },
+    "waste management": {
+      "to": "Environmental & Waste Services",
+      "rank": 1
+    },
+    "engineering": {
+      "to": "Engineering/Construction",
+      "rank": 4
+    },
+    "mechanical engineering": {
+      "to": "Machinery",
+      "rank": 2
+    },
+    "industrial manufacturing": {
+      "to": "Machinery",
+      "rank": 4
+    },
+    "machine industry": {
+      "to": "Machinery",
+      "rank": 2
+    },
+    "construction": {
+      "to": "Engineering/Construction",
+      "rank": 3
+    },
+    "building construction": {
+      "to": "Engineering/Construction",
+      "rank": 2
+    },
+    "underground construction": {
+      "to": "Engineering/Construction",
+      "rank": 2
+    },
+    "civil engineering": {
+      "to": "Engineering/Construction",
+      "rank": 2
+    },
+    "construction industry": {
+      "to": "Engineering/Construction",
+      "rank": 2
+    },
+    "homebuilding": {
+      "to": "Homebuilding",
+      "rank": 1
+    },
+    "building materials": {
+      "to": "Building Materials",
+      "rank": 1
+    },
+    "cement industry": {
+      "to": "Building Materials",
+      "rank": 1
+    },
+    "glass production": {
+      "to": "Packaging & Container",
+      "rank": 2
+    },
+    "packaging": {
+      "to": "Packaging & Container",
+      "rank": 1
+    },
+    "pulp and paper industry": {
+      "to": "Paper/Forest Products",
+      "rank": 1
+    },
+    "forestry": {
+      "to": "Paper/Forest Products",
+      "rank": 2
+    },
+    "iron and steel industry": {
+      "to": "Steel",
+      "rank": 1
+    },
+    "steel industry": {
+      "to": "Steel",
+      "rank": 1
+    },
+    "metal industry": {
+      "to": "Metals & Mining",
+      "rank": 4
+    },
+    "copper extraction": {
+      "to": "Metals & Mining",
+      "rank": 2
+    },
+    "mining": {
+      "to": "Metals & Mining",
+      "rank": 2
+    },
+    "chemical industry": {
+      "to": "Chemical (Diversified)",
+      "rank": 3
+    },
+    "specialty chemicals": {
+      "to": "Chemical (Specialty)",
+      "rank": 1
+    },
+    "basic chemicals": {
+      "to": "Chemical (Basic)",
+      "rank": 1
+    },
+    "pharmaceutical industry": {
+      "to": "Drugs (Pharmaceutical)",
+      "rank": 1
+    },
+    "biotechnology": {
+      "to": "Drugs (Biotechnology)",
+      "rank": 1
+    },
+    "medical technology": {
+      "to": "Healthcare Products",
+      "rank": 1
+    },
+    "medical device": {
+      "to": "Healthcare Products",
+      "rank": 1
+    },
+    "in vitro diagnostics": {
+      "to": "Healthcare Products",
+      "rank": 1
+    },
+    "health care": {
+      "to": "Healthcare Support Services",
+      "rank": 4
+    },
+    "hospital": {
+      "to": "Hospitals/Healthcare Facilities",
+      "rank": 1
+    },
+    "telecommunications industry": {
+      "to": "Telecom. Services",
+      "rank": 2
+    },
+    "mobile phone industry": {
+      "to": "Telecom (Wireless)",
+      "rank": 1
+    },
+    "telecommunications equipment": {
+      "to": "Telecom. Equipment",
+      "rank": 1
+    },
+    "software industry": {
+      "to": "Software (System & Application)",
+      "rank": 2
+    },
+    "information technology": {
+      "to": "Computer Services",
+      "rank": 4
+    },
+    "video game industry": {
+      "to": "Software (Entertainment)",
+      "rank": 1
+    },
+    "computer hardware": {
+      "to": "Computers/Peripherals",
+      "rank": 1
+    },
+    "logistics": {
+      "to": "Transportation",
+      "rank": 2
+    },
+    "postal service": {
+      "to": "Transportation",
+      "rank": 2
+    },
+    "shipping": {
+      "to": "Shipbuilding & Marine",
+      "rank": 3
+    },
+    "shipbuilding": {
+      "to": "Shipbuilding & Marine",
+      "rank": 1
+    },
+    "commercial aviation": {
+      "to": "Air Transport",
+      "rank": 1
+    },
+    "airline": {
+      "to": "Air Transport",
+      "rank": 1
+    },
+    "rail transport": {
+      "to": "Transportation (Railroads)",
+      "rank": 1
+    },
+    "road transport": {
+      "to": "Trucking",
+      "rank": 2
+    },
+    "aerospace": {
+      "to": "Aerospace/Defense",
+      "rank": 1
+    },
+    "arms industry": {
+      "to": "Aerospace/Defense",
+      "rank": 1
+    },
+    "food industry": {
+      "to": "Food Processing",
+      "rank": 2
+    },
+    "dairy": {
+      "to": "Food Processing",
+      "rank": 1
+    },
+    "agriculture": {
+      "to": "Farming/Agriculture",
+      "rank": 1
+    },
+    "tobacco industry": {
+      "to": "Tobacco",
+      "rank": 1
+    },
+    "advertising": {
+      "to": "Advertising",
+      "rank": 1
+    },
+    "publishing": {
+      "to": "Publishing & Newspapers",
+      "rank": 1
+    },
+    "mass media": {
+      "to": "Publishing & Newspapers",
+      "rank": 4
+    },
+    "broadcasting": {
+      "to": "Broadcasting",
+      "rank": 1
+    },
+    "film industry": {
+      "to": "Entertainment",
+      "rank": 1
+    },
+    "entertainment": {
+      "to": "Entertainment",
+      "rank": 3
+    },
+    "gambling": {
+      "to": "Hotel/Gaming",
+      "rank": 1
+    },
+    "hospitality industry": {
+      "to": "Hotel/Gaming",
+      "rank": 2
+    },
+    "tourism": {
+      "to": "Hotel/Gaming",
+      "rank": 3
+    },
+    "restaurant": {
+      "to": "Restaurant/Dining",
+      "rank": 1
+    },
+    "real estate development": {
+      "to": "Real Estate (Development)",
+      "rank": 1
+    },
+    "real estate": {
+      "to": "Real Estate (General/Diversified)",
+      "rank": 3
+    },
+    "education": {
+      "to": "Education",
+      "rank": 1
+    },
+    "cosmetics industry": {
+      "to": "Household Products",
+      "rank": 1
+    },
+    "furniture industry": {
+      "to": "Furn/Home Furnishings",
+      "rank": 1
+    },
+    "holding company activities": {
+      "to": "Diversified",
+      "rank": 9
+    },
+    "conglomerate": {
+      "to": "Diversified",
+      "rank": 9
+    },
+    "activities of head offices": {
+      "to": "Diversified",
+      "rank": 9
+    },
+    "funding": {
+      "to": "Financial Svcs. (Non-bank & Insurance)",
+      "rank": 9
+    },
+    "manufacture of gas; distribution of gaseous fuels": {
+      "to": "Oil/Gas Distribution",
+      "rank": 1
+    },
+    "distribution of gaseous fuels through mains": {
+      "to": "Oil/Gas Distribution",
+      "rank": 1
+    },
+    "multi-utility": {
+      "to": "Utility (General)",
+      "rank": 2
+    },
+    "public utility": {
+      "to": "Utility (General)",
+      "rank": 3
+    },
+    "distribution of gaseous fuels": {
+      "to": "Oil/Gas Distribution",
+      "rank": 1
+    },
+    "electric power generation, transmission and distribution": {
+      "to": "Utility (General)",
+      "rank": 1
+    },
+    "electric power generation": {
+      "to": "Power",
+      "rank": 1
+    },
+    "home appliance industry": {
+      "to": "Household Products",
+      "rank": 1
+    },
+    "household goods": {
+      "to": "Household Products",
+      "rank": 3
+    },
+    "wholesale trade": {
+      "to": "Retail (Distributors)",
+      "rank": 5
+    },
+    "mobile payment industry": {
+      "to": "Financial Svcs. (Non-bank & Insurance)",
+      "rank": 2
+    },
+    "payment processing": {
+      "to": "Financial Svcs. (Non-bank & Insurance)",
+      "rank": 2
+    },
+    "health care industry": {
+      "to": "Healthcare Support Services",
+      "rank": 5
+    },
+    "pharmaceutical wholesale": {
+      "to": "Retail (Distributors)",
+      "rank": 1
+    },
+    "technology company": {
+      "to": "Computer Services",
+      "rank": 9
+    },
+    "software company": {
+      "to": "Software (System & Application)",
+      "rank": 3
+    },
+    "aerospace industry": {
+      "to": "Aerospace/Defense",
+      "rank": 1
+    },
+    "defence industry": {
+      "to": "Aerospace/Defense",
+      "rank": 1
+    },
+    "sporting goods": {
+      "to": "Recreation",
+      "rank": 1
+    },
+    "leisure": {
+      "to": "Recreation",
+      "rank": 3
+    },
+    "fitness": {
+      "to": "Recreation",
+      "rank": 2
+    },
+    "airport": {
+      "to": "Transportation",
+      "rank": 1
+    },
+    "air traffic control": {
+      "to": "Transportation",
+      "rank": 1
+    },
+    "electrical engineering": {
+      "to": "Electrical Equipment",
+      "rank": 2
+    },
+    "measuring instrument": {
+      "to": "Electronics (General)",
+      "rank": 2
+    },
+    "printing": {
+      "to": "Business & Consumer Services",
+      "rank": 3
+    },
+    "media": {
+      "to": "Publishing & Newspapers",
+      "rank": 5
+    },
+    "perfume": {
+      "to": "Household Products",
+      "rank": 1
+    },
+    "toy industry": {
+      "to": "Recreation",
+      "rank": 1
+    },
+    "furniture": {
+      "to": "Furn/Home Furnishings",
+      "rank": 2
+    },
+    "spirits industry": {
+      "to": "Beverage (Alcoholic)",
+      "rank": 1
+    },
+    "confectionery industry": {
+      "to": "Food Processing",
+      "rank": 1
+    },
+    "manufacture of perfumes and toiletries": {
+      "to": "Household Products",
+      "rank": 1
+    },
+    "perfumes and toiletries": {
+      "to": "Household Products",
+      "rank": 1
+    },
+    "fabrication de préparations pharmaceutiques": {
+      "to": "Drugs (Pharmaceutical)",
+      "rank": 1
+    },
+    "préparations pharmaceutiques": {
+      "to": "Drugs (Pharmaceutical)",
+      "rank": 1
+    },
+    "electric power industry": {
+      "to": "Power",
+      "rank": 2
+    },
+    "recycling": {
+      "to": "Environmental & Waste Services",
+      "rank": 1
+    },
+    "charging station": {
+      "to": "Green & Renewable Energy",
+      "rank": 2
+    },
+    "consumer goods industry": {
+      "to": "Household Products",
+      "rank": 6
+    },
+    "research and development in other physical and natural sciences": {
+      "to": "Drugs (Biotechnology)",
+      "rank": 6
+    },
+    "research and development": {
+      "to": "Drugs (Biotechnology)",
+      "rank": 7
+    }
+  },
+  "_review_note": "A label that cannot distinguish two different Damodaran industries gets rank 5+ so it lands in review. 'gas industry' covers both Italgas, a pure distributor, and Hera, a multi-utility."
+}
