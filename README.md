@@ -1,22 +1,30 @@
 # European Equity Valuation Engine & Portfolio Tracker
-
 ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)
 
-An automated discounted-cash-flow screen for European listed companies. It
-pulls financial statements from the ESEF (XBRL) filing archive, prices from
-Yahoo Finance, and risk parameters from Damodaran's datasets and the ECB;
-writes each company into an Excel valuation model; reads the resulting
-verdict back out; and tracks the resulting picks over time.
+**An automated DCF screener for European listed companies — runs entirely on your machine.**
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="screenshots/results.png">
+  <source media="(prefers-color-scheme: light)" srcset="screenshots/dashboard-up-to-date.png">
+  <img alt="The Results page: a research queue of undervalued companies ranked by upside, with the funnel showing how the full universe narrowed to that queue."
+       src="screenshots/results.png" width="900">
+</picture>
+
+<sub>The output of a screening run — whatever the model found, not a curated list.</sub>
+
+It pulls financial statements from the ESEF (XBRL) filing archive, prices from
+Yahoo Finance, and risk parameters from Damodaran's datasets and the ECB; writes
+each company into an Excel valuation model; reads the verdict back out; and tracks
+the resulting picks over time.
 
 Everything runs locally through a minimalist web dashboard. No data is
 published or transmitted to any third party.
 
-**Disclaimer:** This project does not constitute investment advice. It is a
-research tool intended to support independent analysis, not a
-recommendation to buy or sell any security. Screening is conducted purely
-for research purposes; there is no expectation that the companies it flags
-will outperform the broader market. Reported returns reflect price
+**Disclaimer:** This project does not constitute financial advice. 
+It is a research tool intended to support independent analysis, 
+not a recommendation to buy or sell any security. Screening is conducted
+purely for research purposes; there is no expectation that the companies 
+it flags will outperform the broader market. Reported returns reflect price
 performance only and exclude dividends. The portfolio tracker and the
 validation tooling described below (see "Correctness and validation")
 exist to confirm that the model computes what it claims to compute — not
@@ -25,12 +33,10 @@ to represent, imply, or track investment performance.
 ---
 
 ## Why this exists
-
 Individual valuation analysis is vulnerable to a small set of recurring
 biases, most of which have nothing to do with the quality of the analysis
 itself and everything to do with which companies get looked at in the first
 place:
-
 - **Familiarity bias** — analysis tends to concentrate on companies the
   analyst already recognizes, leaving the rest of the market unexamined by
   construction.
@@ -40,7 +46,7 @@ place:
 - **Sentiment bias** — a prior positive or negative opinion of a company
   colors how its financial statements get read, independent of what those
   statements actually say.
-- **Narrative bias toward "interesting" sectors** — attention gravitates
+- **Narrative bias toward innovative sectors** — attention gravitates
   toward technology and other high-growth sectors, leaving traditional and
   unglamorous industries under-covered even when they screen cheaply.
 - **Home-market bias** — analysis defaults to companies from large, familiar
@@ -57,7 +63,6 @@ its own published financial statements say it is priced below its
 calculated fair value.
 
 ## Data availability and why this is only now possible
-
 The valuation model requires five consecutive fiscal years of standardized,
 machine-readable financial statements per company. That data source did not
 exist in usable form until recently: the European Single Electronic Format
@@ -66,6 +71,8 @@ starting on or after 1 January 2020. Five consecutive years of ESEF filings
 per company — the minimum this model requires — has therefore only recently
 become available at any meaningful scale, which is what makes this kind of
 systematic, full-universe screen possible for close to the first time.
+
+<source media="(prefers-color-scheme: dark)" srcset="screenshots/chart.png">
 
 Coverage is expected to expand substantially in the coming years, for two
 reasons. First, the number of companies filing under ESEF has grown each
@@ -82,11 +89,7 @@ independent of any change to the tool itself.
 
 ## Screenshots
 
-*(Add screenshots to `screenshots/` and reference them here — see the list
-at the end of this document for exactly what to capture.)*
-
 ### Dashboard
-
 ![Dashboard](screenshots/dashboard.png)
 
 The landing page. Lists every pipeline stage, whether it is current, and
@@ -95,7 +98,6 @@ ladder, a new reporting quarter, and so on). The single "Run Everything"
 action re-runs every automatable stage in dependency order.
 
 ### Dashboard — fully up to date
-
 ![Dashboard, up to date](screenshots/dashboard-up-to-date.png)
 
 The same page in its calm state (light theme): every stage current, no
@@ -104,7 +106,6 @@ illustrate that the dashboard's notification panel reflects actual pipeline
 state rather than a fixed set of prompts.
 
 ### Settings
-
 ![Settings](screenshots/settings.png)
 
 Every pipeline stage with its own control, whether or not it is already
