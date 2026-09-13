@@ -169,8 +169,16 @@ def job_screen(runner: TaskRunner, *, db: Path, out_dir: Path,
             # intact, instead of a half-written one.
             if runner.cancelled:
                 raise KeyboardInterrupt("stopped")
-            runner.progress(done, total,
-                            result.ticker if result is not None else "skipped")
+            label = result.ticker if result is not None else "skipped"
+            runner.progress(done, total, label)
+            # screen_universe() itself prints nothing (pipeline.py's own
+            # design -- a silent library call), so without this the
+            # activity panel showed the sliding bar and nothing else for
+            # the whole run. say() is what actually reaches the panel;
+            # progress() alone only drives the percentage and the label
+            # next to it.
+            runner.say(f"[{done:>4}/{total}] {label}"
+                      + (f" — {result.verdict}" if result is not None else ""))
 
         try:
             summary = screen_universe(
