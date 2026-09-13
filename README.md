@@ -335,7 +335,7 @@ per company — the minimum this model requires — has therefore only recently
 become available at any meaningful scale, which is what makes this kind of
 systematic, full-universe screen possible for close to the first time.
 
-![European companies filing ESEF by fiscal year](screenshots/chart.svg)
+![European companies filing ESEF by fiscal year](screenshots/chart.png)
 
 Coverage is expected to expand substantially in the coming years, for two
 reasons. First, the number of companies filing under ESEF has grown each
