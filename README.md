@@ -4,8 +4,8 @@
 
 **An automated DCF screener for European listed companies — runs entirely on your machine.**
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="screenshots/results.png">
-  <source media="(prefers-color-scheme: light)" srcset="screenshots/dashboard-up-to-date.png">
+  <source media="(prefers-color-scheme: dark)" srcset="screenshots/presentation.png">
+  <source media="(prefers-color-scheme: light)" srcset="screenshots/presentation.png">
   <img alt="The Results page: a research queue of undervalued companies ranked by upside, with the funnel showing how the full universe narrowed to that queue."
        src="screenshots/results.png" width="900">
 </picture>
