@@ -1,0 +1,72 @@
+{
+  "_comment": "Manual corrections to primary-listing resolution. Same discipline as refdata_tables.json: one version-controlled file, edited by hand, read by the pipeline, never written by it except via --write-review-stub. An entry here WINS over anything GLEIF or OpenFIGI return.",
+  "_why": "Venue alone cannot distinguish a primary listing from a secondary. Frankfurt, Vienna and Milan all host cross-listings of foreign companies, and blocking venues one at a time is whack-a-mole. So the resolver flags every listing outside the issuer's domicile as cross_listing_risk and a human settles it once, here.",
+  "_schema": {
+    "ticker": "OpenFIGI ticker for the primary line, e.g. 'STMPA'",
+    "exchange": "Bloomberg exchange code, e.g. 'FP' for Euronext Paris",
+    "exclude": "true to drop the entity from the screening universe entirely",
+    "note": "why - this is the audit trail, not decoration",
+    "reviewed": "ISO date the decision was made"
+  },
+  "_exchange_codes": {
+    "AV": "Vienna",
+    "BB": "Brussels",
+    "CY": "Cyprus",
+    "ET": "Tallinn",
+    "FH": "Helsinki",
+    "FP": "Euronext Paris",
+    "GA": "Athens",
+    "GR": "Frankfurt",
+    "GY": "Xetra",
+    "ID": "Dublin",
+    "IM": "Borsa Italiana",
+    "LH": "Vilnius",
+    "LR": "Riga",
+    "LX": "Luxembourg",
+    "MV": "Malta",
+    "NA": "Euronext Amsterdam",
+    "PL": "Euronext Lisbon",
+    "SK": "Bratislava",
+    "SM": "Madrid",
+    "SV": "Ljubljana",
+    "CZ": "Zagreb"
+  },
+  "overrides": {
+    "213800ED5AN2J56N6Z02": {
+      "ticker": "CPR",
+      "exchange": "IM",
+      "note": "AUTO-FILLED for review: DAVIDE CAMPARI-MILANO N.V.. Resolver picked CPR.IM, which is outside the NL domicile. Confirm or correct.",
+      "reviewed": null
+    },
+    "213800Z8NOHIKRI42W10": {
+      "ticker": "STMI",
+      "exchange": "AV",
+      "note": "AUTO-FILLED for review: STMICROELECTRONICS N.V.. Resolver picked STMI.AV, which is outside the NL domicile. Confirm or correct.",
+      "reviewed": null
+    },
+    "52990050T51W55KK4X45": {
+      "ticker": "APM",
+      "exchange": "AV",
+      "note": "AUTO-FILLED for review: ad pepper media International N.V.. Resolver picked APM.AV, which is outside the NL domicile. Confirm or correct.",
+      "reviewed": null
+    },
+    "529900JK6UXHY1YKZ082": {
+      "ticker": "SHOP",
+      "exchange": "AV",
+      "note": "AUTO-FILLED for review: Redcare Pharmacy N.V.. Resolver picked SHOP.AV, which is outside the NL domicile. Confirm or correct.",
+      "reviewed": null
+    },
+    "54930036WK3GMCN17Z57": {
+      "ticker": "QGE4",
+      "exchange": "AV",
+      "note": "AUTO-FILLED for review: QIAGEN N.V.. Resolver picked QGE4.AV, which is outside the NL domicile. Confirm or correct.",
+      "reviewed": null
+    },
+    "8156008B101B97A43B02": {
+      "ticker": "CEM",
+      "exchange": "IM",
+      "note": "AUTO-FILLED for review: Cementir Holding N.V.. Resolver picked CEM.IM, which is outside the NL domicile. Confirm or correct.",
+      "reviewed": null
+    }
+  }
+}
