@@ -309,6 +309,8 @@ def main(on_progress=None) -> int:
 
             print(f"[{i:>4}/{len(targets)}] {name[:38]:<40}"
                   f"{symbol:<10}{mic or '?':<6}", end="", flush=True)
+            if on_progress:
+                on_progress(i, len(targets), symbol)
 
             if args.backfill_since and args.source == "yahoo":
                 rows, status = fetch_yahoo_history(
