@@ -31,6 +31,8 @@ import re
 import shutil
 import subprocess
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 from cache import Cache
@@ -156,6 +158,70 @@ def build_prompt(rows: list[dict], valid: set) -> str:
     out += [f"  {r['ticker']} | {r['name']} | {r['country']} | "
             f"{r['revenue_m']:,.0f}" for r in rows]
     return "\n".join(out)
+
+
+# Free-tier eligible; ai.google.dev/pricing has the current list if
+# Google retires this name. One line to change.
+GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_URL = ("https://generativelanguage.googleapis.com/v1beta/models/"
+              f"{GEMINI_MODEL}:generateContent")
+
+
+class GeminiError(RuntimeError):
+    """Raised with a message that is safe to show directly in the GUI."""
+
+
+def classify_via_gemini(rows: list[dict], valid: set, api_key: str,
+                        timeout: int = 90) -> str:
+    """
+    Ask Gemini to classify `rows` and return its raw reply text.
+
+    Same prompt build_prompt() gives a human, same TICKER | Industry
+    format asked for -- so the reply goes through the exact ingest()/
+    parse_line() path either way, and nothing downstream needs to know
+    whether a person or the API produced it. One call for the whole
+    batch: this runs at most quarterly, so the free tier's per-minute
+    quota is not a concern worth chunking the request over.
+    """
+    prompt = build_prompt(rows, valid)
+    payload = json.dumps({
+        "contents": [{"parts": [{"text": prompt}]}],
+        # temperature 0: this is a classification lookup, not
+        # composition -- the same input should not get a different
+        # industry on a re-run.
+        "generationConfig": {"temperature": 0, "maxOutputTokens": 8192},
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        f"{GEMINI_URL}?key={api_key}", data=payload,
+        headers={"Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            doc = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        detail = e.read().decode("utf-8", "replace")[:300]
+        if e.code == 429:
+            raise GeminiError(
+                "Gemini's free-tier rate limit was hit. Wait a bit and "
+                "try again, or use the manual copy/paste prompt "
+                "instead.") from e
+        if e.code in (400, 401, 403):
+            raise GeminiError(
+                f"Gemini rejected the request ({e.code}): {detail}") from e
+        raise GeminiError(f"Gemini request failed ({e.code}): {detail}") from e
+    except (urllib.error.URLError, TimeoutError) as e:
+        raise GeminiError(f"Could not reach Gemini: {e}") from e
+
+    try:
+        parts = doc["candidates"][0]["content"]["parts"]
+        text = "".join(p.get("text", "") for p in parts)
+    except (KeyError, IndexError) as e:
+        blocked = (doc.get("promptFeedback") or {}).get("blockReason")
+        if blocked:
+            raise GeminiError(f"Gemini declined to answer: {blocked}") from e
+        raise GeminiError("Gemini's reply had no usable text.") from e
+    if not text.strip():
+        raise GeminiError("Gemini returned an empty reply.")
+    return text
 
 
 def to_clipboard(text: str) -> bool:

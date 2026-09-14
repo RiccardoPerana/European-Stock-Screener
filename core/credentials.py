@@ -57,6 +57,13 @@ PROVIDERS = {
         "signup": "https://www.openfigi.com/api",
         "note": "Ticker resolution. Optional: raises the rate limit only.",
     },
+    "gemini": {
+        "label": "Google AI Studio (Gemini)",
+        "env": "GEMINI_API_KEY",
+        "signup": "https://aistudio.google.com/apikey",
+        "note": "Auto-classifies missing industries. Optional: without "
+                "it, use the manual copy/paste prompt instead.",
+    },
 }
 
 
