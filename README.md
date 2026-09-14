@@ -5,15 +5,12 @@
 
 **An automated DCF screener for European listed companies — runs entirely on your machine.**
 
-**[→ View the latest published screen](https://riccardoperana.github.io/European-Stock-Screener/)** —
-rebuilt quarterly by GitHub Actions from this repo's own pipeline: the
-Results page, the Portfolio tracker, and a "Methodology" page previewing
-the valuation model itself. The published pages carry the same upside
-percentages, returns and verdicts described below, but never a Yahoo
-Finance-derived € price, fair-value, or entry/exit-price figure (see
-"Data sources and their terms") — those aren't licensed for
-redistribution, so they stay local-only. Run the tool yourself (below)
-for the full, private version, € figures included.
+**[→ Click Here for the Live Preview](https://riccardoperana.github.io/European-Stock-Screener/)** —
+This page is rebuilt quarterly by GitHub Actions from this repo's own pipeline,
+and contains the Results page, the Portfolio Tracker, and a "Methodology" page,
+previewing the valuation model itself.  
+Run the tool for the full version that you find in the "Release" section,
+to find additional pages and figures included.
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="screenshots/presentation.png">
   <source media="(prefers-color-scheme: light)" srcset="screenshots/presentation.png">
