@@ -1,30 +1,15 @@
 #!/usr/bin/env python3
 """
-Unattended pipeline runner, for GitHub Actions
-===============================================
-
-Runs the same stages gui/app.py's "Run Everything" button does, plus the
-two stages that button deliberately leaves out because a human normally
-confirms them (industry classification, the credit-spread ladder) -- here
-they run unattended instead, since nobody is watching a CI job.
+Unattended pipeline runner, for GitHub Actions.
 
     python scripts/ci_screen.py
 
-Reuses gui/app.py's job_* functions directly rather than reimplementing
-the pipeline, so CI and the desktop app can never drift apart on what
-"run everything" actually does.
-
-WHAT THIS DOES NOT DO
-----------------------
-It does not publish anything. It writes the normal (private, full-price)
-report next to financials.db, exactly like a local run, and additionally
-a redacted report_<date>.public.html with no Yahoo Finance-derived EUR
-figures (see core/build_report.py's `public=True` mode) into public/ --
-the only thing the workflow should ever copy to GitHub Pages. See
-README, "Data sources and their terms": Yahoo Finance is not licensed
-for programmatic redistribution, so the private report and the
-Portfolio page (built almost entirely from Yahoo price history) must
-never leave this job.
+Reuses gui/app.py's job_*() functions directly. Also runs credit-ladder
+and industry-classification unattended (both need a confirmation click
+in the desktop app). Writes the normal private report next to
+financials.db, then a second, redacted pass (build_report.py's
+public=True) into public/ as index.html, portfolio.html and
+methodology.html -- the only files ever copied to GitHub Pages.
 """
 
 from __future__ import annotations
@@ -42,12 +27,7 @@ import credentials                                                  # noqa: E402
 
 
 class CIRunner:
-    """The minimum job_*() needs: progress(), say(), .cancelled.
-
-    Mirrors gui/tasks.py's TaskRunner interface without any of the
-    threading/polling machinery a live dashboard needs -- a CI log is
-    already a append-only stream, so this just prints.
-    """
+    """Minimal stand-in for gui/tasks.py's TaskRunner: progress(), say(), .cancelled."""
 
     cancelled = False
 
@@ -64,15 +44,7 @@ def step(name: str) -> None:
 
 
 def run_credit_ladder() -> None:
-    """
-    Fetch Damodaran's two rating tables and write them if they changed.
-
-    The desktop app shows the diff and waits for a click
-    (App.tables_check / tables_apply in gui/app.py); nobody is here to
-    click, so this applies automatically and just prints the diff to the
-    CI log, where it is easy to skim after the fact if a rung moved
-    somewhere unexpected.
-    """
+    """Fetch and apply Damodaran's rating tables without confirmation."""
     import fetch_ratings
 
     current = (json.loads(config.TABLES_PATH.read_text(encoding="utf-8"))
@@ -90,15 +62,7 @@ def run_credit_ladder() -> None:
 
 
 def run_industry_classification() -> None:
-    """
-    Classify any still-unmapped company via Gemini.
-
-    Same code path as gui/app.py's App.industry_classify_gemini(), just
-    called directly instead of through the App/HTTP layer. Skips quietly
-    if GEMINI_API_KEY is not set -- newly-covered companies then stay
-    unmapped and simply drop out of eligible_universe() until someone
-    sets the key, rather than failing the whole run.
-    """
+    """Classify unmapped companies via Gemini. Skips quietly with no key set."""
     from cache import Cache
     from industry_worksheet import (GeminiError, classify_via_gemini,
                                      ingest, unmapped, valid_industries)
@@ -137,7 +101,7 @@ def main() -> int:
     config.utf8_stdout()
     runner = CIRunner()
 
-    import app  # gui/app.py -- reuses its job_*() functions verbatim
+    import app
 
     engine = app.recalc_engine()
     if not engine["ok"]:
@@ -178,14 +142,52 @@ def main() -> int:
     step("public report")
     import build_report
     data = build_report.load(run_dir)
-    public_html = build_report.render(data, public=True)
+    public_html = build_report.render(data, public=True, nav_links=True)
     public_dir = ROOT / "public"
     public_dir.mkdir(exist_ok=True)
     (public_dir / "index.html").write_text(public_html, encoding="utf-8")
-    print(f"wrote {public_dir / 'index.html'}  "
-          f"(no price/fair-value figures -- safe to publish)")
+    print(f"wrote {public_dir / 'index.html'}")
+
+    step("public portfolio")
+    marked = marked_portfolio(config.DB_PATH, config.OUT_DIR)
+    portfolio_html = build_report.render_portfolio(marked, public=True,
+                                                    nav_links=True)
+    (public_dir / "portfolio.html").write_text(portfolio_html,
+                                                encoding="utf-8")
+    print(f"wrote {public_dir / 'portfolio.html'}")
+
+    step("methodology")
+    import shutil
+    (public_dir / "methodology.html").write_text(
+        build_report.build_methodology_page(nav_links=True), encoding="utf-8")
+    shutil.copy(config.TEMPLATE_PATH, public_dir / "valuation_template.xlsx")
+    print(f"wrote {public_dir / 'methodology.html'} and "
+          f"{public_dir / 'valuation_template.xlsx'}")
 
     return 0
+
+
+def marked_portfolio(db_path: Path, out_dir: Path) -> dict:
+    """Sync the portfolio to the latest screen and mark it to current prices."""
+    from cache import Cache
+    from portfolio import Portfolio, mark, sync
+    from track import RunFromJson, latest_run
+
+    with Portfolio(config.PORTFOLIO_PATH) as pf, Cache(db_path) as db:
+        run_path = latest_run(out_dir)
+        if run_path is not None:
+            doc = json.loads(run_path.read_text(encoding="utf-8"))
+            sync(pf, RunFromJson(doc, db, config.FISCAL_YEARS))
+        prices, history = {}, {}
+        for row in pf.all_positions():
+            lei = row["lei"]
+            q = db.latest_price(lei)
+            if q:
+                prices[lei] = q
+            h = db.price_history(lei)
+            if h:
+                history[lei] = h
+        return mark(pf, prices, history=history)
 
 
 if __name__ == "__main__":

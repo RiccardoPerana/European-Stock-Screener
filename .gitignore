@@ -1,5 +1,4 @@
-# Generated pipeline state -- lives on the `data` branch instead (see
-# .github/workflows/screen.yml), never on main.
+# Generated pipeline state
 financials.db
 portfolio.db
 valuations/

@@ -1,30 +1,21 @@
 name: Screen and publish
 
-# Quarterly, matching the screen's own cadence (see README, "The
-# pipeline"), plus a manual button for testing or an out-of-cycle run.
-# GitHub's cron runs in UTC and on a best-effort schedule -- a few
-# minutes' drift is normal and harmless here.
 on:
   schedule:
-    - cron: '0 6 1 1,4,7,10 *'   # 06:00 UTC on the 1st of Jan/Apr/Jul/Oct
+    - cron: '0 6 1 1,4,7,10 *'   # 06:00 UTC, 1st of Jan/Apr/Jul/Oct
   workflow_dispatch: {}
 
-# Only what each job needs. The screen job writes to the `data` branch
-# with the default GITHUB_TOKEN (contents: write); the deploy job needs
-# Pages' own token dance.
 permissions:
   contents: write
 
 jobs:
   screen:
     runs-on: ubuntu-latest
-    timeout-minutes: 350   # a full coverage+extract pass over the EU
-                            # universe is slow; GitHub's hard ceiling for
-                            # a single job is 360 minutes on a free plan
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # needed to see whether the `data` branch exists
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -37,14 +28,9 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Attach the persisted-state branch as a worktree
-        # financials.db, portfolio.db, parameters.json, refdata_tables.json
-        # and shares.csv all need to survive between runs -- GitHub Actions
-        # gives every run a clean checkout, nothing on the runner itself
-        # persists. actions/cache is the wrong tool here: it evicts
-        # anything unused for 7 days, and this job runs quarterly. A
-        # branch in the same repo is free, versioned, and never expires.
-        # Requires git >= 2.42 (ubuntu-latest ships a newer one); if that
-        # ever stops being true, bootstrap once by hand instead:
+        # actions/cache evicts anything unused for 7 days; this runs
+        # quarterly, so state lives on a `data` branch instead.
+        # First-run bootstrap if git < 2.42 lacks `worktree add --orphan`:
         #   git checkout --orphan data && git rm -rf . && \
         #   git commit --allow-empty -m init && git push origin data
         run: |
@@ -83,13 +69,6 @@ jobs:
             commit -m "Pipeline state: $(date -u +%F)" || echo "nothing changed"
           git push origin data
 
-      # The public/ folder is the ONLY thing that leaves this job for the
-      # public site -- it holds just index.html, built by
-      # scripts/ci_screen.py via build_report.render(data, public=True),
-      # which never includes a Yahoo Finance-derived EUR price or
-      # fair-value figure (see core/build_report.py). Nothing else here
-      # -- financials.db, portfolio.db, the full report, the Portfolio
-      # page -- is ever uploaded as a Pages artifact.
       - name: Upload the public report
         uses: actions/upload-pages-artifact@v3
         with:
