@@ -87,6 +87,63 @@ class RecalcError(RuntimeError):
     pass
 
 
+# The Windows LibreOffice installer does not add itself to PATH, so
+# shutil.which("soffice") alone reports "not found" even with a normal
+# install present -- confirmed on a machine that had it installed and
+# still hit "No recalculation engine". These are the installer's default
+# locations for both bitness choices; PATH is still checked first so an
+# explicit install there wins.
+_SOFFICE_FALLBACKS = [
+    r"C:\Program Files\LibreOffice\program\soffice.exe",
+    r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
+]
+
+
+def _registry_soffice() -> str | None:
+    """
+    Ask Windows' own App Paths registry key.
+
+    Every LibreOffice installer -- whatever drive or folder the user
+    picked -- registers this key; it is the same lookup the Windows Run
+    dialog uses to find an .exe that is not on PATH. Checked ahead of
+    guessing folder names because it is authoritative instead of a guess,
+    and the 32-bit install of a key can be shadowed under WOW6432Node on
+    a 64-bit machine.
+    """
+    try:
+        import winreg
+    except ImportError:
+        return None
+    subkey = (r"SOFTWARE\Microsoft\Windows\CurrentVersion"
+              r"\App Paths\soffice.exe")
+    wow_subkey = (r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion"
+                  r"\App Paths\soffice.exe")
+    for hive, path in (
+        (winreg.HKEY_LOCAL_MACHINE, subkey),
+        (winreg.HKEY_LOCAL_MACHINE, wow_subkey),
+        (winreg.HKEY_CURRENT_USER, subkey),
+    ):
+        try:
+            with winreg.OpenKey(hive, path) as key:
+                found, _ = winreg.QueryValueEx(key, "")
+        except OSError:
+            continue
+        if found and Path(found).exists():
+            return found
+    return None
+
+
+def find_soffice() -> str | None:
+    """Path to soffice/libreoffice, or None if neither can be found."""
+    exe = shutil.which("soffice") or shutil.which("libreoffice")
+    if exe:
+        return exe
+    for candidate in _SOFFICE_FALLBACKS:
+        if Path(candidate).exists():
+            return candidate
+    return _registry_soffice()
+
+
 def verify_conventions(ws) -> None:
     """
     Abort if the template's model conventions have drifted.
@@ -254,7 +311,7 @@ def recalculate(path: Path, engine: str) -> str:
                     del app
 
     if engine in ("auto", "libreoffice"):
-        exe = shutil.which("soffice") or shutil.which("libreoffice")
+        exe = find_soffice()
         if exe:
             out = path.parent / "_recalc"
             out.mkdir(exist_ok=True)
