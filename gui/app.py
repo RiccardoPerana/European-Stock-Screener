@@ -76,6 +76,36 @@ ALLOWED_HOSTS = {"localhost", "127.0.0.1", "[::1]"}
 # ---------------------------------------------------------------------------
 
 
+def _excel_installed() -> bool:
+    """
+    True only if Excel itself is registered for COM -- not just that
+    pywin32 is importable.
+
+    pywin32 is bundled into the frozen .exe (see packaging/app.spec), so
+    find_spec("win32com") succeeds on every machine the app runs on,
+    whether or not Excel is actually installed there. That let this
+    check report "Ready" on a computer with no Excel at all: the job
+    started, ran every earlier stage, and only discovered there was
+    nothing to recalculate with once it reached the first company.
+    Checking the Excel.Application ProgID is the same lookup pywin32
+    itself has to make inside DispatchEx() -- so failing here means
+    DispatchEx() would fail too, without spending the time to find that
+    out mid-run and without opening Excel just to ask.
+    """
+    import importlib.util
+    if importlib.util.find_spec("win32com") is None:
+        return False
+    try:
+        import winreg
+    except ImportError:
+        return False
+    try:
+        winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, r"Excel.Application\CLSID")
+        return True
+    except OSError:
+        return False
+
+
 def recalc_engine() -> dict:
     """
     Which spreadsheet engine is available, if any.
@@ -86,15 +116,11 @@ def recalc_engine() -> dict:
     and why starting a job without one refuses cleanly, with a plain
     message, instead of failing in the middle of a scan.
     """
-    import importlib.util
-    import shutil
+    from write_workbook import find_soffice
     found = []
-    # find_spec rather than a try/import: importing win32com just to see
-    # whether it exists loads a COM stack we do not need yet, and leaves
-    # an unused-import warning that has to be suppressed.
-    if importlib.util.find_spec("win32com") is not None:
+    if _excel_installed():
         found.append("Excel")
-    if shutil.which("soffice") or shutil.which("libreoffice"):
+    if find_soffice():
         found.append("LibreOffice")
     return {
         "available": found,
@@ -905,6 +931,33 @@ class App:
         return {"vintage": result["vintage"]}, 200
 
 
+class _LiveStderrHandler(logging.Handler):
+    """
+    A StreamHandler that looks up sys.stderr at emit time rather than
+    binding it once, in __init__.
+
+    Two things need that. First, tasks.py redirects sys.stderr per
+    worker thread (see _Capture) so a running job's log lines land in
+    the activity panel -- a handler bound at startup, before any job
+    exists, would keep writing to the pre-job stream and never reach
+    the GUI. Second, the packaged --noconsole .exe runs with sys.stderr
+    set to None whenever no job is redirecting it; the stock
+    logging.StreamHandler binds that None permanently at basicConfig()
+    time, and every later log call then dies inside logging's own
+    emit(), which is what produced a spurious "--- Logging error ---"
+    dump ahead of the actual failure.
+    """
+
+    def emit(self, record: logging.LogRecord) -> None:
+        stream = _sys.stderr
+        if stream is None:
+            return
+        try:
+            stream.write(self.format(record) + "\n")
+        except Exception:
+            pass
+
+
 def free_port(preferred: int) -> int:
     """The preferred port, or any free one if it is taken."""
     for port in (preferred, 0):
@@ -942,7 +995,8 @@ def main() -> int:
 
     logging.basicConfig(
         level=logging.DEBUG if args.debug else logging.INFO,
-        format="%(asctime)s %(levelname)-7s %(name)s  %(message)s")
+        format="%(asctime)s %(levelname)-7s %(name)s  %(message)s",
+        handlers=[_LiveStderrHandler()])
 
     # Resolve any paths the user gave relative to where they launched us,
     # then move into the project directory so every "./"-relative default
@@ -1001,30 +1055,43 @@ def main() -> int:
         threading.Thread(target=_daily_prices_loop, name="daily-prices",
                          daemon=True).start()
 
-    engine = recalc_engine()
-    print(f"\n  Stock screen is running at  {url}")
-    print(f"  Spreadsheet engine:         "
-          f"{', '.join(engine['available']) or 'NONE — see Settings'}")
-    print("  Press Ctrl+C to stop the server.")
-    if app.exit_on_close:
-        print(f"  Or just close the browser window — the server stops "
-              f"~{app.shutdown_grace:.0f}s later.")
-    elif app.autostop_grace:
-        print(f"  Closing the browser window stops a running job "
-              f"(after ~{app.autostop_grace:.0f}s).")
-    if app.daily_prices:
-        print("  Held-portfolio prices refresh on open, then once a day "
-              "while this keeps running.")
-    print()
+    # Zero Terminal Policy: the packaged --noconsole build has no window
+    # for these to appear in, and no one to press the Ctrl+C they mention.
+    # They stay for `python app.py` from a real terminal.
+    #
+    # It is not just cosmetic: a frozen --noconsole build launches with
+    # sys.stdout/sys.stderr set to None (there is no console to attach),
+    # same as the logging crash above. A bare print() here would fail the
+    # same way, except uncaught and on the main thread before
+    # serve_forever() -- the whole app would never come up. FROZEN is
+    # checked rather than "is sys.stdout None" so this can never depend on
+    # exactly which stream a given PyInstaller build happens to leave usable.
+    if not config.FROZEN:
+        engine = recalc_engine()
+        print(f"\n  Stock screen is running at  {url}")
+        print(f"  Spreadsheet engine:         "
+              f"{', '.join(engine['available']) or 'NONE — see Settings'}")
+        print("  Press Ctrl+C to stop the server.")
+        if app.exit_on_close:
+            print(f"  Or just close the browser window — the server stops "
+                  f"~{app.shutdown_grace:.0f}s later.")
+        elif app.autostop_grace:
+            print(f"  Closing the browser window stops a running job "
+                  f"(after ~{app.autostop_grace:.0f}s).")
+        if app.daily_prices:
+            print("  Held-portfolio prices refresh on open, then once a day "
+                  "while this keeps running.")
+        print()
 
     if not args.no_browser:
         threading.Timer(0.4, webbrowser.open, args=(url,)).start()
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\n  Stopped.")
+        if not config.FROZEN:
+            print("\n  Stopped.")
     else:
-        if app._closing:
+        if app._closing and not config.FROZEN:
             print("\n  Browser window closed — server stopped.")
     finally:
         server.server_close()
