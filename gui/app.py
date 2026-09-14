@@ -529,6 +529,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.json(*app.save_key(data))
         if route == "/api/industry-map":
             return self.json(*app.apply_industry_map(data.get("text", "")))
+        if route == "/api/industry-classify-gemini":
+            return self.json(*app.industry_classify_gemini())
         if route == "/api/tables-apply":
             return self.json(*app.tables_apply())
         return self.json({"error": "unknown request"}, 404)
@@ -842,7 +844,26 @@ class App:
         import ui
         steps = pipeline_status.stages(db=self.db, out_dir=self.out_dir)
         return ui.dashboard(steps, pipeline_status.alerts(steps),
-                            task=self.runner.snapshot())
+                            task=self.runner.snapshot(),
+                            price_watch=self._price_watch())
+
+    def _price_watch(self) -> list[dict]:
+        """
+        Companies that have crossed a trigger price since the last full
+        screen -- see core/price_watch.py. Reads the last run file and
+        the price cache only; no network call, so it is cheap enough to
+        run on every Dashboard load. Never allowed to break the
+        Dashboard: any failure here is a missing/malformed run file or a
+        locked db, not something worth surfacing over the page itself.
+        """
+        import price_watch
+        from cache import Cache
+        try:
+            with Cache(self.db) as db:
+                return price_watch.check(self.out_dir, db, config.FISCAL_YEARS)
+        except Exception:                          # noqa: BLE001
+            log.exception("price watch check failed")
+            return []
 
     def render_settings(self) -> str:
         import pipeline_status
@@ -892,6 +913,49 @@ class App:
         with Cache(self.db) as db, redirect_stdout(buf):
             summary = ingest(text, db, params, config.PARAMS_PATH, valid,
                              config.FISCAL_YEARS)
+        summary["log"] = buf.getvalue()
+        return summary, 200
+
+    def industry_classify_gemini(self) -> tuple[dict, int]:
+        """
+        Ask Gemini directly, instead of the copy-prompt/paste-reply round
+        trip -- same underlying prompt and the same ingest() path, so a
+        Gemini reply and a hand-pasted one are stored identically.
+        """
+        import io
+        from contextlib import redirect_stdout
+        from cache import Cache
+        from industry_worksheet import (GeminiError, classify_via_gemini,
+                                        ingest, unmapped, valid_industries)
+
+        if self.runner.busy:
+            return {"error": "Something is running. Wait for it to finish, "
+                             "then classify."}, 409
+        api_key = credentials.resolve("gemini", allow_prompt=False)
+        if not api_key:
+            return {"error": "No Gemini API key saved. Add one above, or "
+                             "use the manual copy/paste option below."}, 400
+        params = json.loads(config.PARAMS_PATH.read_text(encoding="utf-8"))
+        params.setdefault("company_industry", {})
+        valid = valid_industries(params)
+        if not valid:
+            return {"error": "No industry list yet — refresh the Damodaran "
+                             "industry data first."}, 400
+
+        with Cache(self.db) as db:
+            rows = unmapped(db, params, config.FISCAL_YEARS)
+            if not rows:
+                return {"stored": 0, "rejected": 0, "unknown": 0,
+                        "still_unmapped": 0,
+                        "log": "Nothing to classify."}, 200
+            try:
+                reply = classify_via_gemini(rows, valid, api_key)
+            except GeminiError as e:
+                return {"error": str(e)}, 502
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                summary = ingest(reply, db, params, config.PARAMS_PATH,
+                                 valid, config.FISCAL_YEARS)
         summary["log"] = buf.getvalue()
         return summary, 200
 

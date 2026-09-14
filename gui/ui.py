@@ -419,8 +419,8 @@ async function refresh() {
   const t = s.task, running = t.status === 'running';
   if (running) sawRunning = true;
 
-  document.querySelectorAll('[data-job],[data-assist],#ind-copy,#ind-apply,'
-    + '#tables-check,#tables-apply').forEach(b => b.disabled = running);
+  document.querySelectorAll('[data-job],[data-assist],#ind-gemini,#ind-copy,'
+    + '#ind-apply,#tables-check,#tables-apply').forEach(b => b.disabled = running);
   $('#stop').hidden = !running;
 
   // A job that reports a total drives a real bar; the ingestion scripts
@@ -491,6 +491,17 @@ document.addEventListener('click', async e => {
     const p = $('#assist-' + panel);
     if (p) { p.hidden = !p.hidden;
       if (!p.hidden) p.scrollIntoView({behavior:'smooth', block:'center'}); }
+  }
+  if (e.target.id === 'ind-gemini') {
+    const msg = $('#ind-gemini-msg');
+    msg.textContent = 'Asking Gemini…';
+    const r = await post('/api/industry-classify-gemini');
+    if (!r.ok) { msg.textContent = r.body.error || 'Failed.'; return; }
+    const b = r.body;
+    msg.textContent = b.log === 'Nothing to classify.' ? b.log :
+      'stored ' + b.stored + ', rejected ' + b.rejected
+      + ', unknown ' + b.unknown + ', ' + b.still_unmapped + ' still unmapped';
+    if (b.stored || b.rejected) setTimeout(() => location.reload(), 1800);
   }
   if (e.target.id === 'ind-copy') {
     const msg = $('#ind-copy-msg'); msg.textContent = 'Loading…';
@@ -659,8 +670,40 @@ ASSIST_NOTE = {
 }
 
 
+def _price_watch_block(hits: list[dict]) -> str:
+    """
+    'Crossed a trigger since the last scan' notice, separate from the
+    stage alerts above it -- this is not a pipeline problem to fix, it
+    is a heads-up, so it does not count toward "N steps need attention"
+    or get the "fix one at a time from Settings" line, neither of which
+    apply to it.
+    """
+    crossed = [h for h in hits if h["status"] == "crossed"]
+    approaching = [h for h in hits if h["status"] == "approaching"]
+    if not (crossed or approaching):
+        return ""
+
+    def names(rows):
+        shown = ", ".join(html.escape(r["ticker"]) for r in rows[:6])
+        rest = len(rows) - 6
+        return shown + (f" (+{rest} more)" if rest > 0 else "")
+
+    parts = []
+    if crossed:
+        parts.append(f"<strong>{len(crossed)}</strong> now trade below "
+                     f"their last-quarter trigger price: {names(crossed)}")
+    if approaching:
+        parts.append(f"<strong>{len(approaching)}</strong> within the "
+                     f"watch margin: {names(approaching)}")
+    return (f'<div class="alerts"><div class="alert info"><span>'
+           f'<strong>Price watch</strong> {" — ".join(parts)}. Since the '
+           f'last full scan; worth a look before the next one.'
+           f'</span></div></div>')
+
+
 def dashboard(steps: list[dict], alerts: list[dict],
-             task: dict | None = None) -> str:
+             task: dict | None = None,
+             price_watch: list[dict] | None = None) -> str:
     """
     Notifications, and only the ones that need attention -- a stage that
     is current is not listed. The one control on the page is "Run
@@ -721,6 +764,7 @@ count and an industry — and each of those goes stale on its own schedule.</p>
  if (alerts or task_note) else ''}
 {'<p class="note">Or fix one at a time from <a href="/settings">Settings'
  '</a>.</p>' if alerts else ''}
+{_price_watch_block(price_watch or [])}
 
 <h2>About this program</h2>
 <p class="note full">An automated screen for European listed companies:
@@ -793,9 +837,15 @@ already current. What needs attention is on the
 <div class="assist" id="assist-industries" hidden>
   <h3>Industry mapping</h3>
   <p>Every listed company needs one of Damodaran's industries before it can
-  be valued, and no free source carries a usable one. Step 1: copy the
-  prompt and paste it into any language model. Step 2: paste its reply
-  back. It is safe to do a batch at a time.</p>
+  be valued, and no free source carries a usable one. It is safe to do a
+  batch at a time.</p>
+  <div class="row">
+    <button id="ind-gemini">Classify with Gemini</button>
+    <span class="msg" id="ind-gemini-msg"></span>
+  </div>
+  <p class="lede-sub" style="margin:.6rem 0 1rem">Needs a Gemini key saved
+  below. Or do it by hand instead: copy the prompt into any language model,
+  then paste its reply back in step 2.</p>
   <div class="row">
     <button id="ind-copy" class="quiet">Copy AI prompt</button>
     <span class="msg" id="ind-copy-msg"></span>
