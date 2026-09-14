@@ -325,6 +325,19 @@ a{color:inherit}
   td.reason{width:auto}
 }
 @media print{body{background:#fff} .wrap{padding:0}}
+/* Skins SheetJS's bare sheet_to_html() output for the methodology.html
+   workbook preview. */
+.sheet-picker{display:flex; align-items:baseline; gap:.75rem; margin:1rem 0}
+.sheet-picker label{color:var(--ink-soft); font-size:.9375rem}
+.sheet-picker select{font:inherit; font-size:.9375rem; color:var(--ink);
+  background:var(--paper); border:1px solid var(--rule); border-radius:2px;
+  padding:.3rem .5rem}
+.sheet-wrap{overflow-x:auto; border:1px solid var(--rule); margin:.5rem 0 1.5rem}
+.sheet-wrap table{border-collapse:collapse; font-size:.8125rem; white-space:nowrap}
+.sheet-wrap td,.sheet-wrap th{border:1px solid var(--rule-soft);
+  padding:.3rem .55rem; text-align:left; font-weight:400}
+.sheet-wrap tr:first-child td,.sheet-wrap tr:first-child th{
+  background:var(--rule-soft); font-weight:600}
 """
 
 # The theme control. Kept identical to gui/ui.py (THEME_PREPAINT_JS /
@@ -370,12 +383,8 @@ def band_svg(price, value, public: bool = False) -> str:
     shows at a glance how much room there is before the verdict changes,
     which a percentage alone does not.
 
-    `public=True` keeps the same picture (position relative to the band,
-    which is no more revealing than the upside percentage shown next to
-    it) but drops the literal EUR figures from the aria-label -- those are
-    Yahoo Finance price data, which is not licensed for redistribution
-    (see README, "Data sources and their terms"). Never call this with
-    public=False for anything that leaves this machine.
+    `public=True` drops the literal price/value figures from the
+    aria-label; the picture itself is unchanged.
     """
     if not (isinstance(price, (int, float)) and isinstance(value, (int, float))
             and price > 0 and value > 0):
@@ -404,12 +413,7 @@ def band_svg(price, value, public: bool = False) -> str:
 
 
 def band_labels(price, value, public: bool = False) -> str:
-    """
-    Not shown at all in public mode: this line's whole content is the raw
-    EUR price and fair value, which is Yahoo Finance price data (not
-    licensed for redistribution) -- the upside percentage in the pick
-    header already carries the non-price-derived part of this message.
-    """
+    """Not shown in public mode -- the whole line is a raw price figure."""
     if public:
         return ""
     if not (isinstance(price, (int, float)) and isinstance(value, (int, float))):
@@ -505,17 +509,21 @@ TICKER_GRID_JS = """
 })();"""
 
 
-def render(data: dict, public: bool = False) -> str:
+def _nav_links(current: str) -> str:
+    """Nav links between the published pages. Only used when nav_links=True."""
+    def link(href: str, label: str, key: str) -> str:
+        current_attr = ' aria-current="page"' if key == current else ''
+        return f'<a href="{href}"{current_attr}>{label}</a>'
+    return (link("index.html", "Results", "results") +
+            link("portfolio.html", "Portfolio", "portfolio") +
+            link("methodology.html", "Methodology", "methodology"))
+
+
+def render(data: dict, public: bool = False, nav_links: bool = False) -> str:
     """
-    `public=True` produces the version fit to publish: no EUR price or
-    fair-value figures anywhere on the page (see band_svg/band_labels).
-    Upside percentages, verdicts and the WACC/margin "why" text stay --
-    none of that is Yahoo Finance price data, only the DCF model's own
-    output. The Portfolio page is a separate function (render_portfolio)
-    and is never given a public mode: it is built almost entirely from
-    Yahoo price history (entry/current price, EUR returns, the
-    performance chart) and is not safely redactable piecemeal, so it is
-    simply never published -- see README, "Data sources and their terms".
+    `public=True` drops every EUR price/fair-value figure (see
+    band_svg/band_labels); upside percentages, verdicts and the
+    WACC/margin "why" text stay.
     """
     cs = data["companies"]
     summary = data["summary"]
@@ -566,7 +574,7 @@ def render(data: dict, public: bool = False) -> str:
 
 <header class="masthead">
   <h1>European stock screen</h1>
-  <nav><button id="theme" type="button"
+  <nav>{_nav_links('results') if nav_links else ''}<button id="theme" type="button"
        title="Switch between light and dark"
        aria-label="Switch between light and dark">◐</button></nav>
 </header>
@@ -813,7 +821,8 @@ def _changed_block(positions: list[dict], last_scan: str | None, *,
 </div>"""
 
 
-def render_portfolio(marked: dict) -> str:
+def render_portfolio(marked: dict, public: bool = False,
+                     nav_links: bool = False) -> str:
     """
     The held book and how it has done, in the same style as the results
     report. `marked` is the dict from portfolio.mark(): 100 EUR is
@@ -824,6 +833,10 @@ def render_portfolio(marked: dict) -> str:
     held now. The stakes are equal, so that is simply the mean of each
     holding's return; closed positions are shown for the record but do not
     count toward it.
+
+    `public=True` drops the "Held now" table's Entry/Now price columns.
+    Everything else -- return %, Invested/Value-now, the performance
+    chart, the Sold table -- stays; none of it is a quoted price.
     """
     from portfolio import STAKE
 
@@ -846,13 +859,15 @@ def render_portfolio(marked: dict) -> str:
         cls = "up" if p["return_pct"] >= 0 else "down"
         return f'<td class="num {cls}">{pct(p["return_pct"], 1)}</td>'
 
-    held_rows = "".join(f"""
-<tr><td class="t-name">{esc(p['ticker'])}<small>{esc(p['name'])}</small></td>
-    <td>{esc(p['entry_date'])}</td>
-    <td class="num">{num(p['entry_price'])}</td>
-    <td class="num">{num(p['price'])}</td>
-    {ret_cell(p)}
-</tr>""" for p in sorted(held, key=lambda x: -x["return_pct"]))
+    def held_row(p):
+        price_cells = "" if public else (f'<td class="num">{num(p["entry_price"])}</td>'
+                                          f'<td class="num">{num(p["price"])}</td>')
+        return (f'<tr><td class="t-name">{esc(p["ticker"])}'
+                f'<small>{esc(p["name"])}</small></td>'
+                f'<td>{esc(p["entry_date"])}</td>{price_cells}{ret_cell(p)}</tr>')
+
+    held_rows = "".join(held_row(p)
+                        for p in sorted(held, key=lambda x: -x["return_pct"]))
 
     sold_rows = "".join(f"""
 <tr><td class="t-name">{esc(p['ticker'])}<small>{esc(p['name'])}</small></td>
@@ -928,7 +943,7 @@ return is locked at the exit price; the row stays for the record.</p>
 
 <header class="masthead">
   <h1>European stock screen</h1>
-  <nav><button id="theme" type="button"
+  <nav>{_nav_links('portfolio') if nav_links else ''}<button id="theme" type="button"
        title="Switch between light and dark"
        aria-label="Switch between light and dark">◐</button></nav>
 </header>
@@ -947,10 +962,10 @@ return is locked at the exit price; the row stays for the record.</p>
 
 <h2>Held now</h2>
 <table><thead><tr>
-  <th>Company</th><th>Entered</th><th class="num">Entry</th>
-  <th class="num">Now</th><th class="num">Since entry</th>
+  <th>Company</th><th>Entered</th>{'' if public else
+  '<th class="num">Entry</th><th class="num">Now</th>'}<th class="num">Since entry</th>
 </tr></thead><tbody>{held_rows or
-  '<tr><td colspan="5" class="muted">Nothing held.</td></tr>'}</tbody></table>
+  f'<tr><td colspan="{3 if public else 5}" class="muted">Nothing held.</td></tr>'}</tbody></table>
 {missing_note}
 {void_note}
 {sold_section}
@@ -961,11 +976,113 @@ return is locked at the exit price; the row stays for the record.</p>
   undervalued and closes when it no longer is. Returns are price only,
   exclude dividends, and use a fixed €100 per position with no benchmark
   comparison. Not investment advice.</p>
+  {'<p class="full">Entry and current prices are omitted here — Yahoo '
+   'Finance, the source, is not licensed for redistribution. Returns, '
+   'and the Invested/Value figures above (a fixed €100 stake times a '
+   'return ratio), are the model'"'"'s own output, not republished price '
+   'data.</p>' if public else ''}
 </footer>
 
 </div>
 <script>{THEME_JS}
 {PERF_JS}</script>
+</body></html>"""
+
+
+SHEET_VIEWER_JS = """
+(function(){
+  var sel = document.getElementById('sheet-select');
+  var out = document.getElementById('sheet-table');
+  var status = document.getElementById('sheet-status');
+  var wb = null;
+  function show(name){
+    var ws = wb.Sheets[name];
+    out.innerHTML = ws ? XLSX.utils.sheet_to_html(ws, {editable: false}) : '';
+  }
+  fetch('valuation_template.xlsx').then(function(r){
+    if (!r.ok) throw new Error(r.status);
+    return r.arrayBuffer();
+  }).then(function(buf){
+    wb = XLSX.read(buf, {type: 'array'});
+    wb.SheetNames.forEach(function(name){
+      var opt = document.createElement('option');
+      opt.value = name; opt.textContent = name;
+      sel.appendChild(opt);
+    });
+    sel.value = wb.SheetNames.indexOf('Valuation') >= 0 ? 'Valuation' : wb.SheetNames[0];
+    sel.disabled = false;
+    status.remove();
+    show(sel.value);
+    sel.addEventListener('change', function(){ show(sel.value); });
+  }).catch(function(){
+    status.textContent = 'Could not load the workbook preview -- ' +
+      'download the file below and open it directly instead.';
+  });
+})();"""
+
+
+def build_methodology_page(nav_links: bool = True) -> str:
+    """
+    Static page previewing valuation_template.xlsx sheet-by-sheet via
+    SheetJS. Safe to publish: the shipped template is the fictional
+    DEMO.MI fixture (see tests/golden_test.py), not a real company or
+    Yahoo Finance data.
+    """
+    return f"""<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Methodology</title>
+<script>{PREPAINT_JS}</script>
+<style>{CSS}</style>
+</head><body>
+<div class="wrap">
+
+<header class="masthead">
+  <h1>European stock screen</h1>
+  <nav>{_nav_links('methodology') if nav_links else ''}<button id="theme" type="button"
+       title="Switch between light and dark"
+       aria-label="Switch between light and dark">◐</button></nav>
+</header>
+
+<p class="lede">How the valuation works.</p>
+<p class="lede-sub">Every company is run through the same discounted
+cash-flow model, using only figures taken directly from its published
+accounts or from industry-, country- and market-wide parameters — no
+company-specific judgement calls. The model itself is one Excel
+workbook; below is that exact workbook, filled with a fictional demo
+company, rendered live in your browser.</p>
+
+<h2>The model, sheet by sheet</h2>
+<p class="note">Fictional demo data (ticker DEMO.MI) — the same fixture
+the project's own regression test checks against, not a real company
+and not Yahoo Finance data. Pick a sheet to view its computed values.</p>
+<div class="sheet-picker">
+  <label for="sheet-select">Sheet</label>
+  <select id="sheet-select" disabled><option>Loading…</option></select>
+</div>
+<p id="sheet-status" class="note muted">Loading valuation_template.xlsx…</p>
+<div class="sheet-wrap"><div id="sheet-table"></div></div>
+<p class="note"><a href="valuation_template.xlsx">Download the template
+(.xlsx)</a> to open it in Excel or LibreOffice directly.</p>
+
+<h2>Why five years, why this bar</h2>
+<p class="note">Section from README, "Valuation and signal logic": fair
+value is intrinsic value ± 25%; a company is flagged undervalued when
+the market price sits more than 25% below that midpoint, and the
+research queue on the Results page is exactly that filter applied
+across the whole universe — no company is added or removed by hand.</p>
+
+<footer>
+  <p class="full">This page explains the mechanics of the model shown
+  on the Results and Portfolio pages. Not investment advice.</p>
+</footer>
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>{THEME_JS}
+{SHEET_VIEWER_JS}</script>
 </body></html>"""
 
 
