@@ -1,8 +1,19 @@
 # European Equity Valuation Engine & Portfolio Tracker
 ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)
+[![Live screen](https://img.shields.io/badge/live%20screen-view%20it%20here-brightgreen.svg)](https://riccardoperana.github.io/European-Stock-Screener/)
 
 **An automated DCF screener for European listed companies — runs entirely on your machine.**
+
+**[→ View the latest published screen](https://riccardoperana.github.io/European-Stock-Screener/)** —
+rebuilt quarterly by GitHub Actions from this repo's own pipeline: the
+Results page, the Portfolio tracker, and a "Methodology" page previewing
+the valuation model itself. The published pages carry the same upside
+percentages, returns and verdicts described below, but never a Yahoo
+Finance-derived € price, fair-value, or entry/exit-price figure (see
+"Data sources and their terms") — those aren't licensed for
+redistribution, so they stay local-only. Run the tool yourself (below)
+for the full, private version, € figures included.
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="screenshots/presentation.png">
   <source media="(prefers-color-scheme: light)" srcset="screenshots/presentation.png">
@@ -17,8 +28,12 @@ Yahoo Finance, and risk parameters from Damodaran's datasets and the ECB; writes
 each company into an Excel valuation model; reads the verdict back out; and tracks
 the resulting picks over time.
 
-Everything runs locally through a minimalist web dashboard. No data is
-published or transmitted to any third party.
+Everything runs locally through a minimalist web dashboard, and nothing
+you run yourself is published or transmitted to any third party. A
+separate, price-redacted version of the results (see above) is rebuilt
+and published quarterly by this repo's own GitHub Actions workflow —
+that is the only thing that ever leaves the pipeline; see
+`.github/workflows/screen.yml` and `core/build_report.py`'s `public` mode.
 
 **Disclaimer:** This project does not constitute financial advice. 
 It is a research tool intended to support independent analysis, 
@@ -187,6 +202,12 @@ Damodaran industry.
 run next.
 
 ## Valuation and signal logic
+
+**[→ Explore the model itself](https://riccardoperana.github.io/European-Stock-Screener/methodology.html)** —
+the live "Methodology" page renders `valuation_template.xlsx` sheet by
+sheet in your browser (filled with the project's own fictional demo
+company, the same fixture the regression test checks against), plus a
+link to download the workbook directly.
 
 - **Fair value range:** intrinsic value ± 25%.
 - **Undervalued (research flag):** market price < value × 0.75.
