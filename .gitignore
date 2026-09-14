@@ -1,0 +1,25 @@
+# Generated pipeline state -- lives on the `data` branch instead (see
+# .github/workflows/screen.yml), never on main.
+financials.db
+portfolio.db
+valuations/
+public/
+.esef_cache/
+.id_cache/
+.damodaran/
+
+# Local credentials / environment
+.env
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Packaging output
+packaging/dist/
+packaging/build/
+
+# Editor / OS
+.vscode/
+.DS_Store

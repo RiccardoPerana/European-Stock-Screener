@@ -361,7 +361,7 @@ THEME_JS = """
 })();"""
 
 
-def band_svg(price, value) -> str:
+def band_svg(price, value, public: bool = False) -> str:
     """
     Where the price sits against fair value and the fairly-valued zone.
 
@@ -369,6 +369,13 @@ def band_svg(price, value) -> str:
     number into a verdict -- and it is invisible in every table. Drawing it
     shows at a glance how much room there is before the verdict changes,
     which a percentage alone does not.
+
+    `public=True` keeps the same picture (position relative to the band,
+    which is no more revealing than the upside percentage shown next to
+    it) but drops the literal EUR figures from the aria-label -- those are
+    Yahoo Finance price data, which is not licensed for redistribution
+    (see README, "Data sources and their terms"). Never call this with
+    public=False for anything that leaves this machine.
     """
     if not (isinstance(price, (int, float)) and isinstance(value, (int, float))
             and price > 0 and value > 0):
@@ -378,10 +385,13 @@ def band_svg(price, value) -> str:
     span_hi = max(price, hi) * 1.06
     def x(v):
         return 2 + 96 * (v - span_lo) / (span_hi - span_lo)
+    label = ("Price against fair value; the shaded zone is where the "
+             "verdict would read fairly valued" if public else
+             f"Price {price:,.2f} against fair value {value:,.2f}; "
+             f"the shaded zone is where the verdict would read fairly valued")
     return f"""
 <svg class="band" viewBox="0 0 100 22" preserveAspectRatio="none"
-     role="img" aria-label="Price {price:,.2f} against fair value {value:,.2f};
-     the shaded zone is where the verdict would read fairly valued">
+     role="img" aria-label="{esc(label)}">
   <line x1="2" y1="11" x2="98" y2="11" stroke="var(--rule)"
         stroke-width=".4" vector-effect="non-scaling-stroke"/>
   <rect x="{x(lo):.2f}" y="7" width="{max(x(hi) - x(lo), 0.4):.2f}" height="8"
@@ -393,7 +403,15 @@ def band_svg(price, value) -> str:
 </svg>"""
 
 
-def band_labels(price, value) -> str:
+def band_labels(price, value, public: bool = False) -> str:
+    """
+    Not shown at all in public mode: this line's whole content is the raw
+    EUR price and fair value, which is Yahoo Finance price data (not
+    licensed for redistribution) -- the upside percentage in the pick
+    header already carries the non-price-derived part of this message.
+    """
+    if public:
+        return ""
     if not (isinstance(price, (int, float)) and isinstance(value, (int, float))):
         return ""
     return (f'<p class="pick-why">Trading at {price:,.2f}. The model puts fair '
@@ -487,7 +505,18 @@ TICKER_GRID_JS = """
 })();"""
 
 
-def render(data: dict) -> str:
+def render(data: dict, public: bool = False) -> str:
+    """
+    `public=True` produces the version fit to publish: no EUR price or
+    fair-value figures anywhere on the page (see band_svg/band_labels).
+    Upside percentages, verdicts and the WACC/margin "why" text stay --
+    none of that is Yahoo Finance price data, only the DCF model's own
+    output. The Portfolio page is a separate function (render_portfolio)
+    and is never given a public mode: it is built almost entirely from
+    Yahoo price history (entry/current price, EUR returns, the
+    performance chart) and is not safely redactable piecemeal, so it is
+    simply never published -- see README, "Data sources and their terms".
+    """
     cs = data["companies"]
     summary = data["summary"]
     queue = [c for c in cs if c["flag"]]
@@ -507,8 +536,8 @@ def render(data: dict) -> str:
       <span>{esc(c['ticker'])}{' — ' + esc(where) if where else ''}</span></h3>
     <div class="pick-upside">{pct(c['upside'])}</div>
   </div>
-  {band_svg(c['price'], c['value'])}
-  {band_labels(c['price'], c['value'])}
+  {band_svg(c['price'], c['value'], public)}
+  {band_labels(c['price'], c['value'], public)}
   <p class="pick-why">{esc(why(c))}</p>
 </article>""")
 
@@ -588,6 +617,10 @@ input was missing from the filing. Click a ticker for why.</p>
   published accounts, margins normalised to the five-year median. The
   model cannot recognise a durable competitive advantage, so quality
   compounders read expensive. Not investment advice.</p>
+  {'<p class="full">Prices and EUR fair-value figures are omitted here — '
+   'Yahoo Finance, the source, is not licensed for redistribution. Upside '
+   'percentages are the model'"'"'s own output, not republished price data.</p>'
+   if public else ''}
 </footer>
 
 </div>
@@ -942,6 +975,14 @@ def main() -> int:
         parents=[config.common_args(db=False, out_dir=True, years=False)])
     p.add_argument("--run", type=Path, default=None)
     p.add_argument("--output", type=Path, default=None)
+    p.add_argument("--public", action="store_true",
+                   help="Also write a redacted report_<date>.public.html "
+                        "with no Yahoo Finance-derived EUR price or "
+                        "fair-value figures -- the only variant safe to "
+                        "publish (see build_report.render()).")
+    p.add_argument("--public-output", type=Path, default=None,
+                   help="Where to write the public variant (default: "
+                        "report_<date>.public.html next to --output).")
     p.add_argument("--open", action="store_true",
                    help="Open the page in your browser when it is written")
     args = p.parse_args()
@@ -962,6 +1003,13 @@ def main() -> int:
     queue = sum(1 for c in data["companies"] if c["flag"])
     print(f"{out}")
     print(f"  {len(data['companies'])} companies, {queue} in the queue")
+
+    if args.public:
+        public_out = (args.public_output or
+                     out.with_name(out.stem + ".public.html"))
+        public_out.write_text(render(data, public=True), encoding="utf-8")
+        print(f"{public_out}  (no price/fair-value figures -- safe to publish)")
+
     if args.open:
         webbrowser.open(out.resolve().as_uri())
     return 0
