@@ -1,0 +1,109 @@
+name: Screen and publish
+
+# Quarterly, matching the screen's own cadence (see README, "The
+# pipeline"), plus a manual button for testing or an out-of-cycle run.
+# GitHub's cron runs in UTC and on a best-effort schedule -- a few
+# minutes' drift is normal and harmless here.
+on:
+  schedule:
+    - cron: '0 6 1 1,4,7,10 *'   # 06:00 UTC on the 1st of Jan/Apr/Jul/Oct
+  workflow_dispatch: {}
+
+# Only what each job needs. The screen job writes to the `data` branch
+# with the default GITHUB_TOKEN (contents: write); the deploy job needs
+# Pages' own token dance.
+permissions:
+  contents: write
+
+jobs:
+  screen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350   # a full coverage+extract pass over the EU
+                            # universe is slow; GitHub's hard ceiling for
+                            # a single job is 360 minutes on a free plan
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # needed to see whether the `data` branch exists
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install LibreOffice (headless recalculation engine)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libreoffice-calc
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Attach the persisted-state branch as a worktree
+        # financials.db, portfolio.db, parameters.json, refdata_tables.json
+        # and shares.csv all need to survive between runs -- GitHub Actions
+        # gives every run a clean checkout, nothing on the runner itself
+        # persists. actions/cache is the wrong tool here: it evicts
+        # anything unused for 7 days, and this job runs quarterly. A
+        # branch in the same repo is free, versioned, and never expires.
+        # Requires git >= 2.42 (ubuntu-latest ships a newer one); if that
+        # ever stops being true, bootstrap once by hand instead:
+        #   git checkout --orphan data && git rm -rf . && \
+        #   git commit --allow-empty -m init && git push origin data
+        run: |
+          if git ls-remote --exit-code --heads origin data >/dev/null 2>&1; then
+            git fetch origin data
+            git worktree add data-branch origin/data
+          else
+            git worktree add --orphan -b data data-branch
+          fi
+
+      - name: Restore state from the last run
+        run: |
+          for f in financials.db portfolio.db parameters.json refdata_tables.json shares.csv; do
+            if [ -f "data-branch/$f" ]; then
+              cp "data-branch/$f" "$f"
+              echo "restored $f"
+            else
+              echo "no prior $f -- first run"
+            fi
+          done
+
+      - name: Run the pipeline
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENFIGI_API_KEY: ${{ secrets.OPENFIGI_API_KEY }}
+        run: python scripts/ci_screen.py
+
+      - name: Persist state for the next run
+        run: |
+          for f in financials.db portfolio.db parameters.json refdata_tables.json shares.csv; do
+            if [ -f "$f" ]; then cp "$f" "data-branch/$f"; fi
+          done
+          cd data-branch
+          git -c user.name="stock-screen-bot" -c user.email="actions@users.noreply.github.com" add -A
+          git -c user.name="stock-screen-bot" -c user.email="actions@users.noreply.github.com" \
+            commit -m "Pipeline state: $(date -u +%F)" || echo "nothing changed"
+          git push origin data
+
+      # The public/ folder is the ONLY thing that leaves this job for the
+      # public site -- it holds just index.html, built by
+      # scripts/ci_screen.py via build_report.render(data, public=True),
+      # which never includes a Yahoo Finance-derived EUR price or
+      # fair-value figure (see core/build_report.py). Nothing else here
+      # -- financials.db, portfolio.db, the full report, the Portfolio
+      # page -- is ever uploaded as a Pages artifact.
+      - name: Upload the public report
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: screen
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
