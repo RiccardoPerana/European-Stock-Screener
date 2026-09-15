@@ -9,8 +9,8 @@
 This page is rebuilt quarterly by GitHub Actions from this repo's own pipeline,
 and contains the Results page, the Portfolio Tracker, and a "Methodology" page,
 previewing the valuation model itself.  
-Run the tool for the full version that you find in the "Release" section,
-to find additional pages and figures included.
+Run the tool yourself (see "Getting started" below) for the full, private
+version — real € prices and figures included.
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="screenshots/presentation.png">
   <source media="(prefers-color-scheme: light)" srcset="screenshots/presentation.png">
