@@ -1,0 +1,1103 @@
+{
+  "_comment": "Source of truth for the model parameters at Inputs!B48:B60. Same discipline as refdata_tables.json: version-controlled, hand-updated on a stated cadence, read by the pipeline, never silently rewritten. Every value carries its source and the date it was taken.",
+  "_why_not_a_vendor": "These parameters are NOT sourced from the financial data provider, deliberately. The workbook is calibrated to Damodaran's definitions throughout: RefData carries his ratings-and-spread ladder, B58 his sales-to-capital ratio, B57 his unlevered beta. Mixing a vendor's beta with his spreads produces a WACC that belongs to neither system. Inputs!G57 says as much in the workbook itself.",
+  "_cadence": {
+    "B48": "quarterly - ECB, fetched automatically",
+    "B49": "January and July - Damodaran refreshes country risk semiannually",
+    "B50": "quarterly - review against ECB long-run projections",
+    "B53": "January and July - same file as B49",
+    "B54": "annually, plus on any announced rate change",
+    "B57_B60": "annually each January, when Damodaran republishes"
+  },
+  "_units": "ALL RATES ARE FRACTIONS. 0.026 is 2.6%. Writing 2.6 into B48 produces a 260% risk-free rate, which Section 6 of the brief names as the likeliest silent corruption in the pipeline.",
+  "market_wide": {
+    "risk_free_rate": {
+      "cell": "B48",
+      "value": 0.035409,
+      "source": "ECB Data Portal, euro area AAA-rated central government bond spot rate, 10 years. Series YC.B.U2.EUR.4F.G_N_A.SV_C_YM.SR_10Y",
+      "as_of": "2026-09-14",
+      "note": "One rate for the entire EUR universe. The workbook settles this deliberately: country differences are carried entirely by the country risk premium at B53. Do not make this country-specific."
+    },
+    "mature_market_erp": {
+      "cell": "B49",
+      "value": 0.0423,
+      "source": "Damodaran, implied equity risk premium for a mature market",
+      "as_of": "2026-09-15",
+      "note": "Derived as the total ERP of a zero-CRP country, which is the definition of the mature-market premium."
+    },
+    "long_run_nominal_growth": {
+      "cell": "B50",
+      "value": 0.035409,
+      "source": "Set equal to B48. Damodaran's convention caps terminal growth at the risk-free rate: a company growing faster than the economy forever eventually becomes the economy, and the risk-free rate is the market's own estimate of long-run nominal growth.",
+      "as_of": "2026-09-14",
+      "note": "Damodaran's own convention caps terminal growth at the risk-free rate. If you adopt that, this equals B48 and moves with it."
+    }
+  },
+  "countries": {
+    "_schema": {
+      "crp": "Country risk premium as a fraction, B53",
+      "tax_rate": "Statutory/marginal corporate rate as a fraction, B54",
+      "tax_note": "Composite rates matter. Italy is IRES 24% plus IRAP ~3.9%; Germany is ~30% including trade tax. Do NOT use a headline national rate where a local surcharge applies."
+    },
+    "AT": {
+      "crp": 0.003555,
+      "tax_rate": 0.23,
+      "source": "Damodaran ctryprem.xlsx",
+      "as_of": "2026-09-15"
+    },
+    "BE": {
+      "crp": 0.00776,
+      "tax_rate": 0.25,
+      "source": "Damodaran ctryprem.xlsx",
+      "as_of": "2026-09-15"
+    },
+    "CY": {
+      "crp": 0.01552,
+      "tax_rate": 0.125,
+      "source": "Damodaran ctryprem.xlsx",
+      "as_of": "2026-09-15"
+    },
+    "DE": {
+      "crp": 0.0,
+      "tax_rate": 0.2993,
+      "source": "Damodaran ctryprem.xlsx",
+      "as_of": "2026-09-15"
+    },
+    "EE": {
+      "crp": 0.009129,
+      "tax_rate": 0.2,
+      "source": "Damodaran ctryprem.xlsx",
+      "as_of": "2026-09-15"
+    },
+    "ES": {
+      "crp": 0.01552,
+      "tax_rate": 0.25,
+      "source": "Damodaran ctryprem.xlsx",
+      "as_of": "2026-09-15"
+    },
+    "FI": {
+      "crp": 0.003555,
+      "tax_rate": 0.2,
+      "source": "Damodaran ctryprem.xlsx",
+      "as_of": "2026-09-15"
+    },
+    "FR": {
+      "crp": 0.00776,
+      "tax_rate": 0.2583,
+      "source": "Damodaran ctryprem.xlsx",
+      "as_of": "2026-09-15"
+    },
+    "GR": {
+      "crp": 0.028454,
+      "tax_rate": 0.22,
+      "source": "Damodaran ctryprem.xlsx",
+      "as_of": "2026-09-15"
+    },
+    "HR": {
+      "crp": 0.01552,
+      "tax_rate": 0.18,
+      "source": "Damodaran ctryprem.xlsx",
+      "as_of": "2026-09-15"
+    },
+    "IE": {
+      "crp": 0.00776,
+      "tax_rate": 0.125,
+      "source": "Damodaran ctryprem.xlsx",
+      "as_of": "2026-09-15"
+    },
+    "IT": {
+      "crp": 0.02465,
+      "tax_rate": 0.2781,
+      "source": "Damodaran ctryprem.xlsx",
+      "as_of": "2026-09-15"
+    },
+    "LT": {
+      "crp": 0.010955,
+      "tax_rate": 0.15,
+      "source": "Damodaran ctryprem.xlsx",
+      "as_of": "2026-09-15"
+    },
+    "LU": {
+      "crp": 0.0,
+      "tax_rate": 0.2494,
+      "source": "Damodaran ctryprem.xlsx",
+      "as_of": "2026-09-15"
+    },
+    "LV": {
+      "crp": 0.01552,
+      "tax_rate": 0.2,
+      "source": "Damodaran ctryprem.xlsx",
+      "as_of": "2026-09-15"
+    },
+    "MT": {
+      "crp": 0.010955,
+      "tax_rate": 0.35,
+      "source": "Damodaran ctryprem.xlsx",
+      "as_of": "2026-09-15"
+    },
+    "NL": {
+      "crp": 0.0,
+      "tax_rate": 0.258,
+      "source": "Damodaran ctryprem.xlsx",
+      "as_of": "2026-09-15"
+    },
+    "PT": {
+      "crp": 0.01552,
+      "tax_rate": 0.315,
+      "source": "Damodaran ctryprem.xlsx",
+      "as_of": "2026-09-15"
+    },
+    "SI": {
+      "crp": 0.01552,
+      "tax_rate": 0.22,
+      "source": "Damodaran ctryprem.xlsx",
+      "as_of": "2026-09-15"
+    },
+    "SK": {
+      "crp": 0.01552,
+      "tax_rate": 0.21,
+      "source": "Damodaran ctryprem.xlsx",
+      "as_of": "2026-09-15"
+    }
+  },
+  "industries": {
+    "_schema": {
+      "unlevered_beta": "B57. MUST be Damodaran's PLAIN unlevered beta, NOT the cash-corrected column. Valuation!D35 relevers at gross debt, so the cash-corrected figure understates the cost of equity uniformly across the whole universe - a silent, systematic bias no validation check can see.",
+      "sales_to_capital": "B58. Second reinvestment estimate.",
+      "ebit_margin": "B59. Diagnostic only, feeds D90.",
+      "roic": "B60. Diagnostic only, feeds D91.",
+      "source": "Damodaran European industry datasets, updated each January"
+    },
+    "Advertising": {
+      "unlevered_beta": 0.6559108704734559,
+      "ebit_margin": 0.11259892250088147,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.5089609803619859,
+      "sales_to_capital": 5.4160059235891165
+    },
+    "Aerospace/Defense": {
+      "unlevered_beta": 1.1834398071094316,
+      "ebit_margin": 0.10413301214018039,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.19764578092921203,
+      "sales_to_capital": 3.2600398165369846
+    },
+    "Air Transport": {
+      "unlevered_beta": 0.7493386697170276,
+      "ebit_margin": 0.10504839601986621,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.13170531730204219,
+      "sales_to_capital": 1.5758842650926148
+    },
+    "Apparel": {
+      "unlevered_beta": 0.7427298131365652,
+      "ebit_margin": 0.1874801066217236,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.21590250316259607,
+      "sales_to_capital": 1.4126878888357388
+    },
+    "Auto & Truck": {
+      "unlevered_beta": 0.7274215661021933,
+      "ebit_margin": 0.0389955592102058,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.03672504931457592,
+      "sales_to_capital": 1.061911113042374
+    },
+    "Auto Parts": {
+      "unlevered_beta": 0.6839340979503599,
+      "ebit_margin": 0.048259510438319254,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.09165239472576614,
+      "sales_to_capital": 3.0450919316264087
+    },
+    "Bank (Money Center)": {
+      "unlevered_beta": 0.33891631696804275,
+      "ebit_margin": 1.162518729743954e-05,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "sales_to_capital": 0.12458696094603833
+    },
+    "Banks (Regional)": {
+      "unlevered_beta": 0.12610921307689138,
+      "ebit_margin": 0.0,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "sales_to_capital": 0.0977239719437445
+    },
+    "Beverage (Alcoholic)": {
+      "unlevered_beta": 0.4206520286550585,
+      "ebit_margin": 0.19638096468059937,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.10762103084869144,
+      "sales_to_capital": 0.6443490068426083
+    },
+    "Beverage (Soft)": {
+      "unlevered_beta": 0.33923781542170806,
+      "ebit_margin": 0.1239129315427231,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.17582849934494985,
+      "sales_to_capital": 1.7166038199225064
+    },
+    "Broadcasting": {
+      "unlevered_beta": 0.7586508066996455,
+      "ebit_margin": 0.08212727277796832,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.15451257422513381,
+      "sales_to_capital": 2.4076670195470147
+    },
+    "Brokerage & Investment Banking": {
+      "unlevered_beta": 0.46683686210872544,
+      "ebit_margin": 0.007321623347883443,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "sales_to_capital": 1.7382469796084212
+    },
+    "Building Materials": {
+      "unlevered_beta": 0.9065982169217844,
+      "ebit_margin": 0.12362145481713885,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.2196881443702467,
+      "sales_to_capital": 2.280431668889983
+    },
+    "Business & Consumer Services": {
+      "unlevered_beta": 0.6847861161853429,
+      "ebit_margin": 0.08580809963816209,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.2905655881061073,
+      "sales_to_capital": 4.3830177147434375
+    },
+    "Cable TV": {
+      "unlevered_beta": 0.6827439392843644,
+      "ebit_margin": -0.12771096462537113,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": -0.03894735401458487,
+      "sales_to_capital": 0.3063741883722281
+    },
+    "Chemical (Basic)": {
+      "unlevered_beta": 0.46087577218936465,
+      "ebit_margin": 0.028363808716745684,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.01863596516966062,
+      "sales_to_capital": 0.7253882593504962
+    },
+    "Chemical (Diversified)": {
+      "unlevered_beta": 0.9974907323683732,
+      "ebit_margin": 0.04445684937303223,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.04512955865450766,
+      "sales_to_capital": 1.2374422498895474
+    },
+    "Chemical (Specialty)": {
+      "unlevered_beta": 0.971509908122841,
+      "ebit_margin": 0.10834027548831147,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.10724746854801773,
+      "sales_to_capital": 1.2085735726403908
+    },
+    "Coal & Related Energy": {
+      "unlevered_beta": 0.6094930796549229,
+      "ebit_margin": 0.035610208695424916,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.014664154105397266,
+      "sales_to_capital": 0.45173446462912115
+    },
+    "Computer Services": {
+      "unlevered_beta": 0.8402503556637041,
+      "ebit_margin": 0.08461342070415973,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.3531538219536814,
+      "sales_to_capital": 5.6519426285333605
+    },
+    "Computers/Peripherals": {
+      "unlevered_beta": 1.051256229066928,
+      "ebit_margin": 0.10405277175873358,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.14939117548553962,
+      "sales_to_capital": 2.019728309782514
+    },
+    "Construction Supplies": {
+      "unlevered_beta": 0.8023060480573526,
+      "ebit_margin": 0.09496542258715947,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.10753020545514828,
+      "sales_to_capital": 1.5141645121395575
+    },
+    "Diversified": {
+      "unlevered_beta": 0.7917716005813223,
+      "ebit_margin": 0.1084756800854431,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.06630654150731158,
+      "sales_to_capital": 0.7791598020124284
+    },
+    "Drugs (Biotechnology)": {
+      "unlevered_beta": 1.0731524820649236,
+      "ebit_margin": 0.057707706730044495,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.033713487541740424,
+      "sales_to_capital": 0.5866062827880745
+    },
+    "Drugs (Pharmaceutical)": {
+      "unlevered_beta": 1.048807638774995,
+      "ebit_margin": 0.26200535769484484,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.18531129259274276,
+      "sales_to_capital": 1.1200743255872956
+    },
+    "Education": {
+      "unlevered_beta": 0.4615999312582754,
+      "ebit_margin": 0.13462510247691747,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.1665576919229589,
+      "sales_to_capital": 1.8462720741280243
+    },
+    "Electrical Equipment": {
+      "unlevered_beta": 1.005543051293193,
+      "ebit_margin": 0.11249280038635748,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.28293873839610273,
+      "sales_to_capital": 3.695945116778052
+    },
+    "Electronics (Consumer & Office)": {
+      "unlevered_beta": 1.213632759524474,
+      "ebit_margin": 0.1173078136047836,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.09559904242806065,
+      "sales_to_capital": 1.3058923090304624
+    },
+    "Electronics (General)": {
+      "unlevered_beta": 1.0004611290925756,
+      "ebit_margin": 0.12783527306336062,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.12487702363576184,
+      "sales_to_capital": 1.264678193032735
+    },
+    "Engineering/Construction": {
+      "unlevered_beta": 0.6784444382060281,
+      "ebit_margin": 0.059012463299113235,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.16493876895728063,
+      "sales_to_capital": 3.369286725957937
+    },
+    "Entertainment": {
+      "unlevered_beta": 0.6712044977401687,
+      "ebit_margin": 0.0849384446104766,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.07410942241496286,
+      "sales_to_capital": 1.1159445156608596
+    },
+    "Environmental & Waste Services": {
+      "unlevered_beta": 0.7187261108023951,
+      "ebit_margin": 0.06405930540549658,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.11646920290256818,
+      "sales_to_capital": 1.7547929011003793
+    },
+    "Farming/Agriculture": {
+      "unlevered_beta": 0.2816911031050271,
+      "ebit_margin": 0.07464171936382917,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.05831123705283598,
+      "sales_to_capital": 1.019224463443937
+    },
+    "Financial Svcs. (Non-bank & Insurance)": {
+      "unlevered_beta": 0.31147079974393804,
+      "ebit_margin": 0.09057994018773798,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "sales_to_capital": 0.16088400281332021
+    },
+    "Food Processing": {
+      "unlevered_beta": 0.3673975841207476,
+      "ebit_margin": 0.09369403452610311,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.1474400022875708,
+      "sales_to_capital": 1.8762216167112236
+    },
+    "Food Wholesalers": {
+      "unlevered_beta": 0.3349867915761359,
+      "ebit_margin": 0.010481237770592775,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.06107557552589179,
+      "sales_to_capital": 7.013726172394639
+    },
+    "Furn/Home Furnishings": {
+      "unlevered_beta": 0.3448802307773491,
+      "ebit_margin": 0.0362375489007757,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.05812089864724443,
+      "sales_to_capital": 2.0759261315969426
+    },
+    "Grand Total": {
+      "unlevered_beta": 0.6033119711072635,
+      "ebit_margin": 0.11628163215971579,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.08098877180569838,
+      "sales_to_capital": 0.8231131487726756
+    },
+    "Green & Renewable Energy": {
+      "unlevered_beta": 0.43558228948259614,
+      "ebit_margin": 0.16300724577769407,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.05513518211053032,
+      "sales_to_capital": 0.37982735822186764
+    },
+    "Healthcare Products": {
+      "unlevered_beta": 1.0991070641946752,
+      "ebit_margin": 0.1379076185214453,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.14216240419818352,
+      "sales_to_capital": 1.4177771843539917
+    },
+    "Healthcare Support Services": {
+      "unlevered_beta": 0.605922166262117,
+      "ebit_margin": 0.07011033231159032,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.12627917296894572,
+      "sales_to_capital": 2.249721851168987
+    },
+    "Heathcare Information and Technology": {
+      "unlevered_beta": 1.0401633759087279,
+      "ebit_margin": 0.13492142324470807,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.1373221410509644,
+      "sales_to_capital": 1.2149037559681903
+    },
+    "Homebuilding": {
+      "unlevered_beta": 1.2526717937047733,
+      "ebit_margin": 0.09846897214317936,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.08717950781193934,
+      "sales_to_capital": 1.0750544724203104
+    },
+    "Hospitals/Healthcare Facilities": {
+      "unlevered_beta": 0.28704125585115775,
+      "ebit_margin": 0.06550687423789833,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.04834912106613593,
+      "sales_to_capital": 1.0437445783910393
+    },
+    "Hotel/Gaming": {
+      "unlevered_beta": 0.7136151147662427,
+      "ebit_margin": 0.14128865205424468,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.20544454906208173,
+      "sales_to_capital": 1.7619095071843063
+    },
+    "Household Products": {
+      "unlevered_beta": 0.6917992934844861,
+      "ebit_margin": 0.17586403264157785,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.25347801708087264,
+      "sales_to_capital": 1.8497784625975193
+    },
+    "Information Services": {
+      "unlevered_beta": 0.3768782812964376,
+      "ebit_margin": 0.09364038617037289,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.2500282493389675,
+      "sales_to_capital": 3.318191252459301
+    },
+    "Insurance (General)": {
+      "unlevered_beta": 0.6262906384060654,
+      "ebit_margin": 0.14830977619312294,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.24556405806665307,
+      "sales_to_capital": 2.08266893377912
+    },
+    "Insurance (Life)": {
+      "unlevered_beta": 0.4758107873552664,
+      "ebit_margin": 0.16904398465268458,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.14702993544760404,
+      "sales_to_capital": 1.0708803889598495
+    },
+    "Insurance (Prop/Cas.)": {
+      "unlevered_beta": 0.4976762524631054,
+      "ebit_margin": 0.2055675084660644,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.1695600383424429,
+      "sales_to_capital": 1.0335016751356874
+    },
+    "Investments & Asset Management": {
+      "unlevered_beta": 0.5139464389612406,
+      "ebit_margin": 0.22735911494284355,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.07548400421667939,
+      "sales_to_capital": 0.35881008404033843
+    },
+    "Machinery": {
+      "unlevered_beta": 1.0286505477828145,
+      "ebit_margin": 0.11711928708336482,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.18343718799038822,
+      "sales_to_capital": 2.100507277340425
+    },
+    "Metals & Mining": {
+      "unlevered_beta": 0.9082551001401951,
+      "ebit_margin": 0.07224667040449052,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.12199299050379689,
+      "sales_to_capital": 1.8160297713012123
+    },
+    "Office Equipment & Services": {
+      "unlevered_beta": 0.49367036138468157,
+      "ebit_margin": 0.08178482845554294,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.1525809129123385,
+      "sales_to_capital": 2.203666954885562
+    },
+    "Oil/Gas (Integrated)": {
+      "unlevered_beta": 0.3781198891666867,
+      "ebit_margin": 0.21350881309132977,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.17042975983835443,
+      "sales_to_capital": 1.351549629449356
+    },
+    "Oil/Gas (Production and Exploration)": {
+      "unlevered_beta": 0.5761441818991837,
+      "ebit_margin": 0.38206894273779063,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.35598919262036666,
+      "sales_to_capital": 1.0462348032483277
+    },
+    "Oil/Gas Distribution": {
+      "unlevered_beta": 0.44245252436421656,
+      "ebit_margin": 0.19265780662790888,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.08932040339225365,
+      "sales_to_capital": 0.50341903508809
+    },
+    "Oilfield Svcs/Equip.": {
+      "unlevered_beta": 0.6930668107250426,
+      "ebit_margin": 0.06804782783949481,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.11372536605883717,
+      "sales_to_capital": 1.8933034380589302
+    },
+    "Packaging & Container": {
+      "unlevered_beta": 0.5213331116640024,
+      "ebit_margin": 0.07404512074835722,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.09609461533686932,
+      "sales_to_capital": 1.486052767679795
+    },
+    "Paper/Forest Products": {
+      "unlevered_beta": 0.5177015172073867,
+      "ebit_margin": 0.06210757070086071,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.04252745115632007,
+      "sales_to_capital": 0.7717601454285044
+    },
+    "Power": {
+      "unlevered_beta": 0.4240770649955196,
+      "ebit_margin": 0.14388422097870784,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.10065075463923492,
+      "sales_to_capital": 0.9025072674250679
+    },
+    "Precious Metals": {
+      "unlevered_beta": 0.9163380842329861,
+      "ebit_margin": 0.20818561980139963,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.1517881328561717,
+      "sales_to_capital": 0.7891926109106963
+    },
+    "Publishing & Newspapers": {
+      "unlevered_beta": 0.47721000833922406,
+      "ebit_margin": 0.07516613095158166,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.12867078618315317,
+      "sales_to_capital": 2.0802427761434448
+    },
+    "R.E.I.T.": {
+      "unlevered_beta": 0.3806623412522149,
+      "ebit_margin": 0.5015160178636068,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.04019503442940416,
+      "sales_to_capital": 0.09078612745291983
+    },
+    "Real Estate (Development)": {
+      "unlevered_beta": 0.3399157847089385,
+      "ebit_margin": 0.05335576053383025,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.03712229825108549,
+      "sales_to_capital": 0.8150337642686385
+    },
+    "Real Estate (General/Diversified)": {
+      "unlevered_beta": 0.3407004215022011,
+      "ebit_margin": 0.13353269413232385,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.01639484941111548,
+      "sales_to_capital": 0.14025336598483837
+    },
+    "Real Estate (Operations & Services)": {
+      "unlevered_beta": 0.32092705505031416,
+      "ebit_margin": 0.37646365625857653,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.03297858561701157,
+      "sales_to_capital": 0.10113618870306684
+    },
+    "Recreation": {
+      "unlevered_beta": 0.8497580271870862,
+      "ebit_margin": 0.11855186542551532,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.13318706444375294,
+      "sales_to_capital": 1.385141189385062
+    },
+    "Reinsurance": {
+      "unlevered_beta": 1.0558485711216614,
+      "ebit_margin": 0.143212405088841,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.2364619332833937,
+      "sales_to_capital": 2.165785508200431
+    },
+    "Restaurant/Dining": {
+      "unlevered_beta": 0.5494827735360511,
+      "ebit_margin": 0.05549820395957879,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.18014488427560363,
+      "sales_to_capital": 3.8786401300163553
+    },
+    "Retail (Automotive)": {
+      "unlevered_beta": 0.8063517493467183,
+      "ebit_margin": 0.024448914549770596,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.08674150831729856,
+      "sales_to_capital": 4.067065447155724
+    },
+    "Retail (Building Supply)": {
+      "unlevered_beta": 0.82089925104202,
+      "ebit_margin": 0.05410856692241939,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.09551114942956646,
+      "sales_to_capital": 2.2014752002760427
+    },
+    "Retail (Distributors)": {
+      "unlevered_beta": 0.6197372046148745,
+      "ebit_margin": 0.08477805222938119,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.10220846273039408,
+      "sales_to_capital": 1.4378711784001255
+    },
+    "Retail (General)": {
+      "unlevered_beta": 0.7933076339413696,
+      "ebit_margin": 0.04306716533989839,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.06446843608910052,
+      "sales_to_capital": 1.7275112965320418
+    },
+    "Retail (Grocery and Food)": {
+      "unlevered_beta": 0.6999211909355953,
+      "ebit_margin": 0.03545273619536857,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.10036750868108366,
+      "sales_to_capital": 3.7088440103998184
+    },
+    "Retail (REITs)": {
+      "unlevered_beta": 0.330734402100846,
+      "ebit_margin": 0.6135234379208738,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.05492721632279415,
+      "sales_to_capital": 0.10459001725317923
+    },
+    "Retail (Special Lines)": {
+      "unlevered_beta": 1.0075214739156937,
+      "ebit_margin": 0.0792199713473343,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.2114346552961282,
+      "sales_to_capital": 3.1465761733961517
+    },
+    "Rubber& Tires": {
+      "unlevered_beta": 0.584853413978433,
+      "ebit_margin": 0.06468603069941593,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.08538486676799882,
+      "sales_to_capital": 1.7152067031681641
+    },
+    "Semiconductor": {
+      "unlevered_beta": 1.1525080527467373,
+      "ebit_margin": 0.14343628466115163,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.09518969932873782,
+      "sales_to_capital": 1.0253668585871754
+    },
+    "Semiconductor Equip": {
+      "unlevered_beta": 1.6578947449692338,
+      "ebit_margin": 0.3161477380310273,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.32701957294659717,
+      "sales_to_capital": 2.0292179142451636
+    },
+    "Shipbuilding & Marine": {
+      "unlevered_beta": 0.6547924989048411,
+      "ebit_margin": 0.09489156639492806,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.09770143621958068,
+      "sales_to_capital": 1.0706521786884684
+    },
+    "Shoe": {
+      "unlevered_beta": 1.0351491348847341,
+      "ebit_margin": 0.08034183086874165,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.13145552857657716,
+      "sales_to_capital": 1.8682551017898326
+    },
+    "Software (Entertainment)": {
+      "unlevered_beta": 0.9971974161076943,
+      "ebit_margin": 0.252031536325723,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.23375338340182578,
+      "sales_to_capital": 1.071035587162347
+    },
+    "Software (Internet)": {
+      "unlevered_beta": 0.6175586284921113,
+      "ebit_margin": 0.13418151121829347,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.19177028103667848,
+      "sales_to_capital": 1.8313259815634753
+    },
+    "Software (System & Application)": {
+      "unlevered_beta": 0.911030691900097,
+      "ebit_margin": 0.19326896045741532,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.23184579015259307,
+      "sales_to_capital": 2.6034157941251563
+    },
+    "Steel": {
+      "unlevered_beta": 0.6924359692798523,
+      "ebit_margin": 0.015937868169515597,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.020526101860812947,
+      "sales_to_capital": 1.476844595603764
+    },
+    "Telecom (Wireless)": {
+      "unlevered_beta": 0.3426451676850168,
+      "ebit_margin": 0.1300409524080693,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.06282995755833184,
+      "sales_to_capital": 0.5906468230004868
+    },
+    "Telecom. Equipment": {
+      "unlevered_beta": 0.6677151227609983,
+      "ebit_margin": 0.07181407459070045,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.08347514127911092,
+      "sales_to_capital": 2.7655319171794956
+    },
+    "Telecom. Services": {
+      "unlevered_beta": 0.43114074991789325,
+      "ebit_margin": 0.16200770833288833,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.09897652669181198,
+      "sales_to_capital": 0.7565115588023656
+    },
+    "Tobacco": {
+      "unlevered_beta": 0.14710673476933472,
+      "ebit_margin": 0.3044248652551364,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.1291009658666117,
+      "sales_to_capital": 0.5428813231937953
+    },
+    "Transportation": {
+      "unlevered_beta": 0.4923078763877582,
+      "ebit_margin": 0.0720907471484188,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.08185603692375731,
+      "sales_to_capital": 1.382256087654434
+    },
+    "Transportation (Railroads)": {
+      "unlevered_beta": 0.5061607276665048,
+      "ebit_margin": -0.014328441620267834,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.013510514893708442,
+      "sales_to_capital": 0.937077930477446
+    },
+    "Trucking": {
+      "unlevered_beta": 0.6095495011298123,
+      "ebit_margin": 0.03704214974037786,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.08647951719775196,
+      "sales_to_capital": 2.866705788463735
+    },
+    "Utility (General)": {
+      "unlevered_beta": 0.37648705754230977,
+      "ebit_margin": 0.11783612921396931,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.1253877324593472,
+      "sales_to_capital": 1.3507066018221383
+    },
+    "Utility (Water)": {
+      "unlevered_beta": 0.42748647620673375,
+      "ebit_margin": 0.2749538484743795,
+      "source": "Damodaran European industry datasets",
+      "as_of": "2026-09-15",
+      "roic": 0.08098877180569838,
+      "sales_to_capital": 0.25098907817630045
+    }
+  },
+  "company_industry": {
+    "_comment": "LEI -> industry key in `industries`. There is no automated route: neither GLEIF, OpenFIGI nor ESEF carries a usable classification, and B57 drives the ENTIRE cost of equity. So this is mapped by hand, once, and reviewed when a company changes business. Section 13 question 11 of the brief asks how granular the mapping should be - that decision is recorded here.",
+    "724500Y6DUVHQD6OXN27": "Semiconductor",
+    "BUCRF72VH5RBN7X3VL35": "Oil/Gas (Integrated)",
+    "969500F7JLTX36OUI695": "Auto & Truck",
+    "549300TTCXZOGZM2EY83": "Retail (Special Lines)",
+    "724500K5PTPSST86UQ23": "Beverage (Alcoholic)",
+    "7245009EAAUUQJ0U4T57": "Business & Consumer Services",
+    "549300LTH67W4GWMRF57": "Beverage (Soft)",
+    "5493009GY1X8GQ66AM14": "Oil/Gas (Integrated)",
+    "H1FJE8H61JGM1JSGM897": "Electronics (Consumer & Office)",
+    "213800Z8NOHIKRI42W10": "Semiconductor",
+    "2138001CNF45JP5XZK38": "Engineering/Construction",
+    "549300DV5KJ23OKVTW34": "Auto & Truck",
+    "5299006UDSEJCTTEJS30": "Power",
+    "529900ARBU9SBJFNX419": "Engineering/Construction",
+    "549300CAAOUTT4QDOZ16": "Oil/Gas (Integrated)",
+    "549300RDGCRYZ5QE6513": "Oil/Gas (Integrated)",
+    "549300YO0JZHAL7FVP81": "Telecom (Wireless)",
+    "5493009YRUJJDCFF0R80": "Steel",
+    "213800D9O7FUQDH83V62": "Shipbuilding & Marine",
+    "635400IUIZZIUJSAMF76": "Power",
+    "549300EF0CDEQZBMA096": "Machinery",
+    "5299001AMHDLKUM80611": "Paper/Forest Products",
+    "724500Q41FHN0P1GPC53": "Transportation",
+    "213800SB6EOB8SSK9W63": "Air Transport",
+    "529900MVUWACNUTK8467": "Transportation",
+    "529900P4JZBFEVNEAE60": "Utility (General)",
+    "529900JK6UXHY1YKZ082": "Retail (Special Lines)",
+    "724500OUE3PCA809DZ79": "Engineering/Construction",
+    "74370031Y7RK5H88CQ48": "Chemical (Diversified)",
+    "743700TU2S3DXWGU7H32": "Telecom (Wireless)",
+    "54930036WK3GMCN17Z57": "Drugs (Biotechnology)",
+    "549300EW2KM4KROKQV31": "Software (System & Application)",
+    "815600F25FF44EF1FA76": "Oil/Gas Distribution",
+    "815600CC86D25A205563": "Household Products",
+    "969500UR00DF63I0VH67": "Household Products",
+    "529900M13GM4VSTE6W80": "Engineering/Construction",
+    "4N6SD705LP5XZKA2A097": "Electronics (General)",
+    "529900EVOKN4LCCD9321": "Electronics (General)",
+    "5493002B0GOVF42KWX33": "Machinery",
+    "529900DS2PAVS3K9RV51": "Auto & Truck",
+    "743700YQIO8Y4L4WKR40": "Auto & Truck",
+    "743700XJC24THUPK0S03": "Publishing & Newspapers",
+    "724500UL634GFV1KYF10": "Oil/Gas (Integrated)",
+    "529900IIODYNYAZ2ID26": "Machinery",
+    "549300NCMRGIBJYUOE57": "Engineering/Construction",
+    "5493004V6A3Z027YT216": "Beverage (Alcoholic)",
+    "815600EBD7FB00525B20": "Apparel",
+    "969500SARWF33OPQED48": "Household Products",
+    "969500WV1U1WQ059L135": "Drugs (Pharmaceutical)",
+    "52990007AXNSS4PNX352": "Beverage (Soft)",
+    "549300ZD9ED8GSG3JW36": "Oil/Gas (Integrated)",
+    "529900CTIUKTEFNNH157": "Power",
+    "213800413RZM6IS8GM09": "Beverage (Soft)",
+    "743700JMXCC11CRJCS71": "Engineering/Construction",
+    "529900XX7EU9F4GJTY86": "Apparel",
+    "5493000FHOCPRAERG577": "Food Processing",
+    "74370053IOY42B9YJ350": "Apparel",
+    "7245000V8JJ8CE1L8G60": "Green & Renewable Energy",
+    "7245009QH646WM76PR25": "Environmental & Waste Services",
+    "391200WHND7OZEFNNL77": "Software (System & Application)",
+    "724500M1WJLFM9TYBS04": "Beverage (Alcoholic)",
+    "8156009414FD99443B48": "Utility (General)",
+    "743700OX6HSVMCAHPB95": "Retail (General)",
+    "5493000O0NZ1BCXO8K39": "Retail (Grocery and Food)",
+    "549300VZKC61IR5U8G96": "Machinery",
+    "549300AK8Y0LBIQ4T071": "Drugs (Biotechnology)",
+    "549300BLWVJN2BAT0A44": "Retail (Automotive)",
+    "969500R4CLSQFTYYI535": "Hotel/Gaming",
+    "213800ED5AN2J56N6Z02": "Beverage (Alcoholic)",
+    "969500WQFC6OAQYG7E65": "Entertainment",
+    "549300UWB1AIR85BM957": "Healthcare Products",
+    "7245008G22FOV7TYYJ34": "Electrical Equipment",
+    "969500UU4O58BR802Y55": "Aerospace/Defense",
+    "5493006MN6OH67U2YI74": "Metals & Mining",
+    "8156008B101B97A43B02": "Building Materials",
+    "724500HUXGTQC07CAZ61": "Recreation",
+    "7437001AEZHLL3UEX093": "Healthcare Support Services",
+    "724500Y5L5UIEYCJCZ03": "Business & Consumer Services",
+    "OQXDLNM5DTBULYMF5U27": "Electrical Equipment",
+    "743700BKTW4EQIVKYY42": "Household Products",
+    "5299008TBI1EUJJSWP89": "Auto & Truck",
+    "7437000PN6E448NPGY86": "Food Processing",
+    "5493005HPJ40IY377O47": "Auto Parts",
+    "969500M2EFP3ASV8WL56": "Machinery",
+    "81560048ECF8D2059980": "Transportation",
+    "743700IFQI6W89M1IY95": "Retail (General)",
+    "969500ZR92SQCU9TST26": "Semiconductor",
+    "969500BVOHVZUUFWDT54": "Shipbuilding & Marine",
+    "7437004XD6U0FFDCT507": "Electronics (General)",
+    "52990038OKF8UAD5LA12": "Diversified",
+    "74370058MTRLEDOCHV67": "Hospitals/Healthcare Facilities",
+    "815600115DA6E507AE33": "Machinery",
+    "724500J0BPD5CLHCK040": "Green & Renewable Energy",
+    "743700RNDD7KU11HW873": "Electronics (General)",
+    "7245007A1YFLI2GNYX06": "Semiconductor Equip",
+    "8156008F25C4B0E7C860": "Aerospace/Defense",
+    "529900N7I4DSM16GF659": "Computer Services",
+    "529900PD3SI453KAW989": "Business & Consumer Services",
+    "743700QZE6B52SHHTV75": "Retail (General)",
+    "743700IE9NQGF9YZAI97": "Retail (Special Lines)",
+    "815600C851C90CAE6438": "Hospitals/Healthcare Facilities",
+    "815600DFC29A91FF0C71": "Packaging & Container",
+    "724500HDW6IWR9J5YT90": "Green & Renewable Energy",
+    "549300O7SBDSNG4IB582": "Metals & Mining",
+    "724500DCJ9MPG74JEH91": "Drugs (Biotechnology)",
+    "7437006I5533R06JU690": "Engineering/Construction",
+    "743700DYZ6R1QNLWQA56": "Hotel/Gaming",
+    "743700Z9Z54VGHZA0028": "Diversified",
+    "5299005U9E85Y55OHK45": "Food Processing",
+    "743700ILU1PL86IW3429": "Publishing & Newspapers",
+    "743700POUUQ3CS3Q7S40": "Engineering/Construction",
+    "5299005NNDRP09PFOY81": "Food Processing",
+    "724500X4WAS3V33MVX37": "Electronics (General)",
+    "724500QDJRUMSPRDHW25": "Software (Internet)",
+    "8156008BFBC06F53DD56": "Machinery",
+    "529900YXT3CDTZGS0R43": "Paper/Forest Products",
+    "724500IGR5FBK0RLZI29": "Machinery",
+    "7437009TB42O2AB3JW91": "Recreation",
+    "74370083282NHIP4QD02": "Food Processing",
+    "743700QVAG6OXK5OP587": "Software (System & Application)",
+    "743700GO2XU2ZYYDKW67": "Software (System & Application)",
+    "743700J7NHT5OLSJ3B78": "Publishing & Newspapers",
+    "7437002ULTBOWQQOXL69": "Furn/Home Furnishings",
+    "815600AB2BDB42BC0E81": "Computer Services",
+    "743700ZKOMTB7X00OW54": "Business & Consumer Services",
+    "743700CJRQRU0007GN59": "Telecom. Equipment",
+    "815600F8217BC7733697": "Healthcare Products",
+    "969500N24EZ7HPKJIV79": "Electronics (Consumer & Office)",
+    "724500BGF3XIKX9EST18": "Computer Services",
+    "8156005DBE6CA468DD09": "Air Transport",
+    "529900HM9YCQHAU2QC84": "Building Materials",
+    "743700O69NCHTNEV0362": "Transportation",
+    "743700HSIESZ75X06H10": "Retail (General)",
+    "743700205JAMGM80QD88": "Chemical (Specialty)",
+    "5299009A2CSKJBWWKY81": "Building Materials",
+    "743700NRL9EH2FLPH480": "Machinery",
+    "529900CPC3UZMJ3DTN75": "Apparel",
+    "743700MRPVYI7ASHCX38": "Software (System & Application)",
+    "097900BGMP0000061061": "Oil/Gas Distribution",
+    "529900TR0K86WYPDQW04": "Apparel",
+    "52990050T51W55KK4X45": "Advertising",
+    "743700HXWTM31ZHBXW13": "Computer Services",
+    "984500E0A1C4DLBA3878": "Software (System & Application)",
+    "549300ZTYB9HDCOHS439": "Retail (General)",
+    "969500667RSYIH8YL895": "Drugs (Biotechnology)",
+    "74370089ATTSNBXJVT29": "Healthcare Products",
+    "724500E5WW4731JJ4G46": "Chemical (Specialty)",
+    "969500I9Y690B3FZW590": "Drugs (Biotechnology)",
+    "815600F4A5F5D3BCD688": "Business & Consumer Services",
+    "743700KOUL1GQQQREP40": "Metals & Mining"
+  },
+  "model_conventions": {
+    "_comment": "Inputs!B63:B70. The application VERIFIES these and aborts on drift. It must never write them. A drifted template produces results that are not comparable across the screen.",
+    "B63_stage1_years": 5,
+    "B64_stage2_years": 5,
+    "B65_max_growth": 0.12,
+    "B66_max_roic": 0.4,
+    "B67_min_roic": 0.02,
+    "B68_max_reinvestment": 0.9,
+    "B69_mid_year_discounting": 1,
+    "B70_min_wacc_growth_spread": 0.005,
+    "_constraint": "B63 + B64 must equal 10. D99 enforces it and the forecast grid is hard-coded to ten columns, D:M."
+  },
+  "excluded_companies": {
+    "815600E546497667D288": "Section 3.2 business type; the model is not valid for it",
+    "815600B5D89DAB660021": "Section 3.2 business type; the model is not valid for it",
+    "52990001IQUJ710GHH43": "Section 3.2 business type; the model is not valid for it",
+    "969500JJ71T2DIPDVV84": "Section 3.2 business type; excluded in bulk",
+    "724500973ODKK3IFQ447": "Section 3.2 business type; excluded in bulk",
+    "549300ZIL1V7D7F3YH40": "Section 3.2 business type; excluded in bulk",
+    "549300FLGHUKNZMHZN17": "Section 3.2 business type; excluded in bulk",
+    "724500J0ITXIWK2CJX62": "Section 3.2 business type; excluded in bulk"
+  }
+}
