@@ -23,11 +23,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 350
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
 
@@ -61,7 +61,7 @@ jobs:
         run: bash scripts/ci_state.sh persist "Pipeline state"
 
       - name: Upload the public report
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: public
 
@@ -74,7 +74,9 @@ jobs:
           if git diff --cached --quiet; then echo "screenshot unchanged"; exit 0; fi
           git -c user.name="stock-screen-bot" -c user.email="actions@users.noreply.github.com" \
             commit -m "Refresh README screenshot: $(date -u +%F)"
-          # main may have moved during a multi-hour run.
+          # main may have moved during a multi-hour run. --autostash: the
+          # pipeline rewrites tracked files (parameters.json, ...), which
+          # live in the encrypted state, not in this commit.
           git pull --rebase --autostash origin main
           git push origin HEAD:main
 
@@ -89,4 +91,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
