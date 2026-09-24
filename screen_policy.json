@@ -1,0 +1,21 @@
+{
+  "_comment": "Research-flag policy, Section 10.2. Kept OUT of the workbook deliberately: the verdict at D86 is the model's opinion and must never be re-derived in Python, but the research flag is the application's own, strictly narrower filter. Keeping it here means it can be tuned against real distributions without touching the engine or invalidating the golden test.",
+  "research_flag": {
+    "require_verdict": "UNDERVALUED - investigate",
+    "suppress_on_severity": [
+      "WARNING"
+    ],
+    "_severity_note": "NOTE never suppresses. A NOTE means a bound was binding or a fallback was used, which is information, not doubt.",
+    "exempt_checks": ["D103"],
+    "_exempt_note": "D103 warns that the actual effective interest rate (D42) exceeds the synthetic pre-tax cost of debt implied by the credit rating (D41). It is exempt because the model has ALREADY ACTED ON IT: D43 is MIN(0.25, MAX(D41, D42)), so the higher of the two rates is what feeds the WACC. Verified directly -- forcing an actual rate of 12.00% against a synthetic 4.50% produced a cost of debt of 12.00%, not 4.50%. Suppressing the research flag as well charges the company twice for a risk already priced into its discount rate. The check still fires and is still reported, which is the point: it tells you the synthetic rating is generous for this company, and that is worth knowing when you research it. D121 and D122 are the other defensible candidates: both are PROCESS warnings about the pipeline rather than the company, and a stale credit table suppresses the whole universe at once. D104 is deliberately NOT exempt -- it is graded instead, because the reinvestment divergence it flags is not corrected anywhere in the model. D29 simply takes the lower of the two estimates, which is a choice, not a correction.",
+    "graded_checks": {
+      "D104": {
+        "metric": "reinvestment_ratio",
+        "suppress_above": 3.0,
+        "_note": "D104 compares two reinvestment estimates: D25 from the cash flow statement, and D28 from the industry sales-to-capital ratio at Inputs!B58. It fires whenever they differ by more than 50%, which happens for 77% of companies -- B58 is a MEDIAN, and almost nothing sits at its industry's median. Grading it means only a genuine outlier suppresses: 3.0 keeps a company whose estimates differ threefold or more out of the research queue, and lets the routine 1.2x disagreements through."
+      }
+    },
+    "_graded_note": "A graded check is neither exempt nor absolute. It suppresses only past a magnitude, so the tail is kept and the noise is dropped."
+  },
+  "thresholds_note": "The +/-25% bands live in the workbook at D86 and are NOT configurable here. Section 15: run 100 names and inspect the distribution of D85 before trusting them. ASML returned -74.92%, which suggests the OVERVALUED bucket may be very crowded."
+}

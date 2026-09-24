@@ -1,0 +1,31 @@
+# Core pipeline
+openpyxl>=3.1.0            # workbook read/write; discards cached formula
+                           # results on save, which the recalc gate relies on
+
+# ESEF ingestion (steps 1-2 only)
+xbrl-filings-api>=1.0      # filings.xbrl.org index
+
+# Recalculation engine -- install ONE of these:
+#   pywin32>=306           Windows only, drives your installed Excel.
+#                          Best fidelity; required if you want to be certain
+#                          the numbers match what Excel would show.
+#   LibreOffice            any OS, must be on PATH as `soffice`.
+#                          Verified to reproduce D83 = 11.4538271570406
+#                          bit-identically on the demo company.
+pywin32>=306; sys_platform == "win32"
+
+# Optional: only needed if Damodaran publishes .xls rather than .xlsx
+xlrd>=2.0.1
+
+# Credential storage. Hands API keys to the OS credential store
+# (Windows Credential Manager / macOS Keychain / Secret Service) so the
+# GUI can offer a text box instead of asking users to set shell variables.
+keyring>=24.0
+
+# Development
+pytest>=8.0
+pyflakes>=3.0
+
+# Packaging (see packaging/build_dist.py) -- builds the portable
+# StockScreen.exe. Not needed to run or develop the tool itself.
+pyinstaller>=6.0; sys_platform == "win32"

@@ -1,0 +1,68 @@
+{
+  "_comment": "Source of truth for the synthetic credit rating tables. The pipeline selects a table by market capitalisation, writes all 45 cells into RefData!A4:C18, sets RefData!B22:B24, then recalculates. Valuation!D120 verifies the selection, D115 verifies the sort order, D122 verifies the vintage.",
+  "source": "Damodaran, 'Ratings, Interest Coverage Ratios and Default Spreads'",
+  "vintage": "2026-01",
+  "next_expected": "2027-01",
+  "size_cutoff": {
+    "eur_millions": 4300,
+    "basis": "Damodaran's USD 5bn threshold converted at EURUSD 1.16 (2026-08-28) and FIXED in EUR. Review each February alongside the tables. Do not float this with the exchange rate: it would reclassify companies, and change their valuations, for no economic reason.",
+    "applies_to": "Inputs!B16, market capitalisation in EUR millions"
+  },
+  "write_target": {
+    "coverage_threshold": "RefData!A4:A18",
+    "rating_label": "RefData!B4:B18",
+    "default_spread": "RefData!C4:C18",
+    "active_table": "RefData!B22",
+    "vintage": "RefData!B23",
+    "cutoff": "RefData!B24"
+  },
+  "invariants": [
+    "Exactly 15 rows per table.",
+    "coverage_from must be written ascending; Valuation!D39 and D40 use MATCH(...,1), which returns a silently wrong spread on unsorted data rather than an error.",
+    "Row 4 keeps the -100000 sentinel so that any coverage ratio, however negative, resolves to a rating.",
+    "Spreads are fractions. RefData carries the percentage formatting already, so write values without formatting.",
+    "The two ladders cross over near 1.2x coverage: above it SMALL charges more than LARGE, below it SMALL charges less. Selecting the wrong table is not conservative in a predictable direction."
+  ],
+  "tables": {
+    "LARGE": {
+      "description": "Large non-financial service firms, market cap at or above the cut-off",
+      "rows": [
+        {"coverage_from": -100000, "rating": "D",   "rating_full": "D2/D",       "spread": 0.1900},
+        {"coverage_from": 0.2,     "rating": "C",   "rating_full": "C2/C",       "spread": 0.1600},
+        {"coverage_from": 0.65,    "rating": "CC",  "rating_full": "Ca2/CC",     "spread": 0.1261},
+        {"coverage_from": 0.8,     "rating": "CCC", "rating_full": "Caa/CCC",    "spread": 0.0885},
+        {"coverage_from": 1.25,    "rating": "B-",  "rating_full": "B3/B-",      "spread": 0.0509},
+        {"coverage_from": 1.5,     "rating": "B",   "rating_full": "B2/B",       "spread": 0.0321},
+        {"coverage_from": 1.75,    "rating": "B+",  "rating_full": "B1/B+",      "spread": 0.0275},
+        {"coverage_from": 2.0,     "rating": "BB",  "rating_full": "Ba2/BB",     "spread": 0.0184},
+        {"coverage_from": 2.25,    "rating": "BB+", "rating_full": "Ba1/BB+",    "spread": 0.0138},
+        {"coverage_from": 2.5,     "rating": "BBB", "rating_full": "Baa2/BBB",   "spread": 0.0111},
+        {"coverage_from": 3.0,     "rating": "A-",  "rating_full": "A3/A-",      "spread": 0.0089},
+        {"coverage_from": 4.25,    "rating": "A",   "rating_full": "A2/A",       "spread": 0.0078},
+        {"coverage_from": 5.5,     "rating": "A+",  "rating_full": "A1/A+",      "spread": 0.0070},
+        {"coverage_from": 6.5,     "rating": "AA",  "rating_full": "Aa2/AA",     "spread": 0.0055},
+        {"coverage_from": 8.5,     "rating": "AAA", "rating_full": "Aaa/AAA",    "spread": 0.0040}
+      ]
+    },
+    "SMALL": {
+      "description": "Smaller non-financial service companies, market cap below the cut-off",
+      "rows": [
+        {"coverage_from": -100000, "rating": "D",   "rating_full": "D2/D",       "spread": 0.1400},
+        {"coverage_from": 0.5,     "rating": "C",   "rating_full": "C2/C",       "spread": 0.1050},
+        {"coverage_from": 0.8,     "rating": "CC",  "rating_full": "Ca2/CC",     "spread": 0.0800},
+        {"coverage_from": 1.25,    "rating": "CCC", "rating_full": "Caa/CCC",    "spread": 0.0650},
+        {"coverage_from": 1.5,     "rating": "B-",  "rating_full": "B3/B-",      "spread": 0.0550},
+        {"coverage_from": 2.0,     "rating": "B",   "rating_full": "B2/B",       "spread": 0.0450},
+        {"coverage_from": 2.5,     "rating": "B+",  "rating_full": "B1/B+",      "spread": 0.0375},
+        {"coverage_from": 3.0,     "rating": "BB",  "rating_full": "Ba2/BB",     "spread": 0.0300},
+        {"coverage_from": 3.5,     "rating": "BB+", "rating_full": "Ba1/BB+",    "spread": 0.0250},
+        {"coverage_from": 4.0,     "rating": "BBB", "rating_full": "Baa2/BBB",   "spread": 0.0160},
+        {"coverage_from": 4.5,     "rating": "A-",  "rating_full": "A3/A-",      "spread": 0.0125},
+        {"coverage_from": 6.0,     "rating": "A",   "rating_full": "A2/A",       "spread": 0.0110},
+        {"coverage_from": 7.5,     "rating": "A+",  "rating_full": "A1/A+",      "spread": 0.0100},
+        {"coverage_from": 9.5,     "rating": "AA",  "rating_full": "Aa2/AA",     "spread": 0.0080},
+        {"coverage_from": 12.5,    "rating": "AAA", "rating_full": "Aaa/AAA",    "spread": 0.0060}
+      ]
+    }
+  }
+}
