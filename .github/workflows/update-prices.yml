@@ -1,0 +1,65 @@
+name: Update prices
+
+# Between quarterly screens: refresh prices for the companies the last
+# screen valued, open/close portfolio positions against its fair values
+# (core/price_update.py), and republish the site with a new portfolio
+# page. No LibreOffice, no recalculation -- a few minutes, not hours.
+
+on:
+  schedule:
+    - cron: '30 17 * * 1-5'   # 17:30 UTC weekdays, after European closes
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pipeline-state
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore state (encrypted, on the pipeline-state release)
+        env:
+          STATE_KEY: ${{ secrets.STATE_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/ci_state.sh restore
+
+      - name: Update prices and the portfolio
+        run: python scripts/ci_update_prices.py
+
+      - name: Persist state for the next run
+        env:
+          STATE_KEY: ${{ secrets.STATE_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/ci_state.sh persist "Price update"
+
+      - name: Upload the public report
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: update
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
