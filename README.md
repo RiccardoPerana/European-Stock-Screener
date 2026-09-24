@@ -186,11 +186,18 @@ GitHub Pages:
 
 | Workflow | When | What |
 |---|---|---|
-| **General screening** (`screen.yml`) | 1st of Jan/Apr/Jul/Oct, or by hand | the full pipeline, then the site and the README screenshot |
+| **General screening** (`screen.yml`) | 15th of Jan/Apr/Jul/Oct, or by hand | the full pipeline, then the site and the README screenshot |
 | **Update prices** (`update-prices.yml`) | weekdays 17:30 UTC, or by hand | prices for the last screen's companies only; opens/closes portfolio positions against its fair values (`core/price_update.py`); republishes the portfolio page |
 
+The screen also rolls the five-year fiscal window forward by itself: once
+80% of the companies in the current window have filed the next year's
+annual report, it moves to that year and records it in
+`screen_config.json` (`ROLL_THRESHOLD` in `scripts/ci_screen.py`). An
+explicit `"fiscal_years"` in that file pins the window instead.
+
 Between runs the pipeline's state (`financials.db`, `portfolio.db`, the
-parameter files, the last `run_DATE.json` and the built site) is kept as
+parameter files, `screen_config.json`, the last `run_DATE.json` and the
+built site) is kept as
 one AES-256-encrypted archive on the `pipeline-state` release, written by
 `scripts/ci_state.sh`. Encrypted because it contains Yahoo prices; a
 release rather than a branch because a branch rejects files over 100 MB
