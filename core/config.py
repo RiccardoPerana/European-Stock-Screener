@@ -50,6 +50,8 @@ FROZEN = bool(getattr(sys, "frozen", False))
 YEAR_COUNT = 5
 
 # Change this (or screen_config.json) once a year, after reporting season.
+# The GitHub Actions screen does it itself (scripts/ci_screen.py,
+# roll_fiscal_window), writing screen_config.json.
 DEFAULT_FY0 = 2025
 
 # The project directory: this file lives in <root>/core/config.py. Data
@@ -102,6 +104,22 @@ def fiscal_years(fy0: int | None = None) -> list[int]:
 
 
 FISCAL_YEARS = fiscal_years()
+
+
+def set_latest_fiscal_year(fy0: int, path: Path = CONFIG_FILE) -> list[int]:
+    """
+    Move the window to end at `fy0`: written to screen_config.json for
+    later runs, and applied to FISCAL_YEARS for the rest of this one.
+    Every script reads config.FISCAL_YEARS (or common_args()'s default,
+    resolved when its parser is built), so stages run after this call in
+    the same process all see the new window.
+    """
+    global FISCAL_YEARS
+    cfg = _load_config(path)
+    cfg["latest_fiscal_year"] = fy0
+    path.write_text(json.dumps(cfg, indent=2) + "\n", encoding="utf-8")
+    FISCAL_YEARS = fiscal_years(fy0)
+    return FISCAL_YEARS
 
 # --------------------------------------------------------------------------
 # Paths
