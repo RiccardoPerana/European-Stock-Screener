@@ -1,0 +1,92 @@
+name: General screening
+
+# The full pipeline: coverage, extract, identity, prices, shares,
+# parameters, industries, screen -- then publish the site. Quarterly.
+# Between runs, update-prices.yml keeps the portfolio page current.
+
+on:
+  schedule:
+    - cron: '0 6 1 1,4,7,10 *'   # 06:00 UTC, 1st of Jan/Apr/Jul/Oct
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+# Shared with update-prices.yml: both write the pipeline-state release,
+# and a price update must not start from state a running screen is replacing.
+concurrency:
+  group: pipeline-state
+  cancel-in-progress: false
+
+jobs:
+  screen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install LibreOffice (headless recalculation engine)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libreoffice-calc
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install Playwright (screenshot)
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+
+      - name: Restore state (encrypted, on the pipeline-state release)
+        env:
+          STATE_KEY: ${{ secrets.STATE_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/ci_state.sh restore
+
+      - name: Run the pipeline
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENFIGI_API_KEY: ${{ secrets.OPENFIGI_API_KEY }}
+        run: python scripts/ci_screen.py
+
+      - name: Persist state for the next run
+        env:
+          STATE_KEY: ${{ secrets.STATE_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/ci_state.sh persist "Pipeline state"
+
+      - name: Upload the public report
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: Screenshot the public Results page for the README
+        run: python scripts/screenshot_report.py
+
+      - name: Commit the refreshed screenshot to main
+        run: |
+          git add screenshots/presentation.png
+          if git diff --cached --quiet; then echo "screenshot unchanged"; exit 0; fi
+          git -c user.name="stock-screen-bot" -c user.email="actions@users.noreply.github.com" \
+            commit -m "Refresh README screenshot: $(date -u +%F)"
+          # main may have moved during a multi-hour run.
+          git pull --rebase origin main
+          git push origin HEAD:main
+
+  deploy:
+    needs: screen
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
