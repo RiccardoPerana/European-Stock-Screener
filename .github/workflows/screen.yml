@@ -6,7 +6,9 @@ name: General screening
 
 on:
   schedule:
-    - cron: '0 6 1 1,4,7,10 *'   # 06:00 UTC, 1st of Jan/Apr/Jul/Oct
+    # The 15th, not the 1st: Damodaran republishes in the first weeks of
+    # January, and the January run should use the new year's inputs.
+    - cron: '0 6 15 1,4,7,10 *'   # 06:00 UTC, 15th of Jan/Apr/Jul/Oct
   workflow_dispatch: {}
 
 permissions:
