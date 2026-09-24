@@ -18,6 +18,7 @@
 #
 # Inside the archive:
 #   financials.db portfolio.db parameters.json refdata_tables.json shares.csv
+#   screen_config.json   the fiscal window, once the screen has rolled it
 #   runs/run_DATE.json   the screen's fair values, read by the price update
 #   public/              the last published site, so a price update can
 #                        redeploy it with only portfolio.html rebuilt
@@ -25,7 +26,7 @@ set -euo pipefail
 shopt -s nullglob
 
 RELEASE=pipeline-state
-STATE_FILES="financials.db portfolio.db parameters.json refdata_tables.json shares.csv"
+STATE_FILES="financials.db portfolio.db parameters.json refdata_tables.json shares.csv screen_config.json"
 KEEP=2                       # newest assets kept; the older one is a fallback
 
 : "${STATE_KEY:?STATE_KEY is not set (add it as a repository secret)}"
