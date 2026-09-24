@@ -75,7 +75,7 @@ jobs:
           git -c user.name="stock-screen-bot" -c user.email="actions@users.noreply.github.com" \
             commit -m "Refresh README screenshot: $(date -u +%F)"
           # main may have moved during a multi-hour run.
-          git pull --rebase origin main
+          git pull --rebase --autostash origin main
           git push origin HEAD:main
 
   deploy:
