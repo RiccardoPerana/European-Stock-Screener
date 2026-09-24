@@ -6,7 +6,8 @@ Unattended pipeline runner, for GitHub Actions.
 
 Reuses gui/app.py's job_*() functions directly. Also runs credit-ladder
 and industry-classification unattended (both need a confirmation click
-in the desktop app). Writes the normal private report next to
+in the desktop app), and rolls the fiscal window forward once enough of
+the next year's annual reports are in the archive (roll_fiscal_window). Writes the normal private report next to
 financials.db, then a second, redacted pass (build_report.py's
 public=True) into public/ as index.html, portfolio.html and
 methodology.html -- the only files ever copied to GitHub Pages.
@@ -16,6 +17,7 @@ from __future__ import annotations
 
 import json
 import sys
+from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -24,6 +26,12 @@ sys.path.insert(0, str(ROOT / "gui"))
 
 import config                                                      # noqa: E402
 import credentials                                                  # noqa: E402
+
+
+# Share of the current universe that must have filed FY0+1 before the
+# window moves. Rolling drops everyone who has not filed yet until they
+# do, so it waits for most of reporting season rather than the first few.
+ROLL_THRESHOLD = 0.80
 
 
 class CIRunner:
@@ -59,6 +67,48 @@ def run_credit_ladder() -> None:
         print(f"  {c}")
     result = fetch_ratings.apply(config.TABLES_PATH, fetched)
     print(f"applied. new vintage: {result['vintage']}")
+
+
+def roll_fiscal_window() -> None:
+    """
+    Move the window forward one year once ROLL_THRESHOLD of the companies
+    with a complete run of filings for the current window have also filed
+    the next year. Reads the filing list the coverage stage just cached.
+    An explicit "fiscal_years" in screen_config.json pins the window and
+    turns this off.
+    """
+    import esef_coverage
+
+    years = config.FISCAL_YEARS
+    nxt = years[-1] + 1
+    if "fiscal_years" in config._load_config():
+        print(f"fiscal window pinned to FY{years[0]}-FY{years[-1]} "
+              "in screen_config.json; not rolling.")
+        return
+    if nxt >= date.today().year:
+        print(f"FY{nxt} has not ended yet; window stays "
+              f"FY{years[0]}-FY{years[-1]}.")
+        return
+
+    records = []
+    for country in esef_coverage.EURO_AREA:
+        records.extend(esef_coverage.fetch_country(
+            country, config.ESEF_CACHE_DIR, refresh=False))
+    coverage = esef_coverage.build_coverage(
+        esef_coverage.deduplicate(records))
+    universe = [e for e in coverage.values() if e.is_complete(years)]
+    if not universe:
+        print("no complete filers in the current window; not rolling.")
+        return
+
+    filed = sum(1 for e in universe if nxt in e.years_present)
+    share = filed / len(universe)
+    print(f"FY{nxt} filed by {filed} of {len(universe)} companies in the "
+          f"current window ({share:.0%}; rolls at {ROLL_THRESHOLD:.0%}).")
+    if share < ROLL_THRESHOLD:
+        return
+    new = config.set_latest_fiscal_year(nxt)
+    print(f"fiscal window rolled forward to FY{new[0]}-FY{new[-1]}.")
 
 
 def run_industry_classification() -> None:
@@ -112,6 +162,9 @@ def main() -> int:
 
     step("coverage")
     app.job_script(runner, job="coverage", db=config.DB_PATH)
+
+    step("fiscal window")
+    roll_fiscal_window()
 
     step("extract")
     app.job_script(runner, job="extract", db=config.DB_PATH)
