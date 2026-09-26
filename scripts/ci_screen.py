@@ -7,10 +7,11 @@ Unattended pipeline runner, for GitHub Actions.
 Reuses gui/app.py's job_*() functions directly. Also runs credit-ladder
 and industry-classification unattended (both need a confirmation click
 in the desktop app), and rolls the fiscal window forward once enough of
-the next year's annual reports are in the archive (roll_fiscal_window). Writes the normal private report next to
-financials.db, then a second, redacted pass (build_report.py's
-public=True) into public/ as index.html, portfolio.html and
-methodology.html -- the only files ever copied to GitHub Pages.
+the next year's annual reports are in the archive (roll_fiscal_window).
+Writes the normal private report next to financials.db, then a second,
+redacted pass (build_report.py's public=True) into public/ as index.html,
+portfolio.html and methodology.html -- the only files ever copied to
+GitHub Pages.
 """
 
 from __future__ import annotations
@@ -52,21 +53,26 @@ def step(name: str) -> None:
 
 
 def run_credit_ladder() -> None:
-    """Fetch and apply Damodaran's rating tables without confirmation."""
+    """
+    Fetch and apply Damodaran's rating tables without confirmation.
+
+    Applied even when nothing changed: that re-stamps the vintage as checked
+    today, so an unchanged table never ages into D122's 14-month warning.
+    """
     import fetch_ratings
 
     current = (json.loads(config.TABLES_PATH.read_text(encoding="utf-8"))
                if config.TABLES_PATH.exists() else {})
     fetched = fetch_ratings.fetch()
     changes = fetch_ratings.diff(current, fetched)
-    if not changes:
+    if changes:
+        print(f"credit-spread ladder: {len(changes)} rung(s) changed:")
+        for c in changes:
+            print(f"  {c['text']}")
+    else:
         print("credit-spread ladder: no change.")
-        return
-    print(f"credit-spread ladder: {len(changes)} rung(s) changed:")
-    for c in changes:
-        print(f"  {c}")
     result = fetch_ratings.apply(config.TABLES_PATH, fetched)
-    print(f"applied. new vintage: {result['vintage']}")
+    print(f"vintage: {result['vintage']}")
 
 
 def roll_fiscal_window() -> None:

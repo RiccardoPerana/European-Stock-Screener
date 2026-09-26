@@ -31,8 +31,8 @@ def main() -> int:
     import fetch_prices
     from cache import Cache
     from portfolio import Portfolio
-    from price_update import apply_prices, tickers_to_leis
-    from track import latest_run
+    from price_update import apply_prices
+    from track import iter_triggers, latest_run, leis_by_ticker
 
     run_path = latest_run(config.OUT_DIR)
     if run_path is None or not config.DB_PATH.exists():
@@ -42,9 +42,9 @@ def main() -> int:
     print(f"fair values from {run_path.name}")
 
     with Portfolio(config.PORTFOLIO_PATH) as pf, Cache(config.DB_PATH) as db:
-        by_ticker = tickers_to_leis(db, config.FISCAL_YEARS)
-        leis = {by_ticker[t] for t in (run_doc.get("triggers") or {})
-                if t in by_ticker}
+        by_ticker = leis_by_ticker(db, config.FISCAL_YEARS)
+        leis = {lei for lei, _, _ in iter_triggers(run_doc, by_ticker.get)
+                if lei}
         leis |= {row["lei"] for row in pf.open_positions()}
 
     step(f"prices ({len(leis)} companies)")
