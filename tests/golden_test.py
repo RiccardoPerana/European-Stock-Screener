@@ -3,7 +3,7 @@
 Golden test and negative fixtures
 =================================
 
-Two questions this answers, both from Section 13 question 21 of the brief.
+Two questions this answers.
 
 1. IS THE ENGINE STILL THE ENGINE?
    The demo company must still return D83 = 11.4538271570406 with all 27
@@ -17,9 +17,8 @@ Two questions this answers, both from Section 13 question 21 of the brief.
 2. DO THE GATES ACTUALLY FIRE?
    Five faults are injected one at a time into an otherwise untouched demo
    workbook, and each must produce the specific FAIL it was designed to
-   catch. The brief puts it plainly: a gate nobody has watched fail is a
-   gate being trusted on faith. Every one of these was a silent wrong
-   answer under model v2.0.
+   catch: a gate nobody has watched fail is a gate being trusted on faith,
+   and each of these faults is otherwise a silent wrong answer.
 
 USAGE
 -----

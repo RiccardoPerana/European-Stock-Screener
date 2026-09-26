@@ -1,16 +1,8 @@
 """
-Pytest fixtures.
+Pytest fixtures. Imports resolve against core/ and gui/ via pytest.ini.
 
-test_cache.py was written with a hand-rolled runner in `__main__` that
-threaded one Cache through six tests in order. Under pytest the parameter
-was simply an unknown fixture name, so all six ERRORed and only the four
-that take no argument ran -- the suite looked like it passed while the
-entire persistence layer went untested.
-
-The `db` fixture below restores them. It is module-scoped on purpose: the
-six tests build on each other's writes, exactly as the original runner
-intended, and making them independent would mean rewriting the assertions
-rather than fixing the plumbing.
+`db` is module-scoped on purpose: the Cache tests in test_cache.py build on
+each other's writes, in file order.
 """
 
 import tempfile

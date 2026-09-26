@@ -1,7 +1,7 @@
 """
 Calendar-driven maintenance reminders (pipeline_status._calendar_reminders).
 
-The brief asks for three notices the age-based staleness cannot express:
+Three notices the age-based staleness cannot express:
 an annual Damodaran nudge in Jan/Feb, a quarterly "run the scan" nudge
 when the calendar quarter turns, and the 180-day coverage alert (handled
 by SCHEDULE, checked here too).

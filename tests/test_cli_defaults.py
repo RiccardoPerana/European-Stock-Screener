@@ -34,10 +34,9 @@ import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 
-# The pipeline lives in core/, the R&D scripts in tools/, this file's
-# neighbours in tests/. Scripts are named without a directory below and
-# resolved against these, in order.
-SCRIPT_DIRS = [REPO / "core", REPO / "tools", REPO / "tests"]
+# The pipeline lives in core/, this file's neighbours in tests/. Scripts are
+# named without a directory below and resolved against these, in order.
+SCRIPT_DIRS = [REPO / "core", REPO / "tests"]
 
 
 def find_script(name: str) -> Path | None:
@@ -55,10 +54,10 @@ EXPECTED_YEARS = [2021, 2022, 2023, 2024, 2025]
 # connection or a database at import time does not belong here.
 CLI_SCRIPTS = [
     "run_screen.py", "write_workbook.py", "fetch_prices.py", "track.py",
-    "esef_extract.py", "esef_coverage.py", "extraction_audit.py",
-    "verify_company.py", "normalisation_probe.py", "invested_capital_probe.py",
-    "make_test_db.py", "analyse_run.py", "credentials.py", "screen.py",
-    "fetch_ratings.py",
+    "esef_extract.py", "esef_coverage.py", "resolve_identity.py",
+    "fetch_parameters.py", "shares_worksheet.py", "industry_worksheet.py",
+    "build_report.py", "make_test_db.py", "analyse_run.py", "credentials.py",
+    "screen.py", "fetch_ratings.py",
 ]
 
 
@@ -128,6 +127,35 @@ def test_fiscal_window_is_not_hardcoded_anywhere():
     assert not offenders, (
         "these scripts still hardcode the fiscal window; they should use "
         f"config.FISCAL_YEARS: {offenders}")
+
+
+def test_no_window_written_out_as_a_literal():
+    """
+    The --years check above only sees argparse defaults. A module-level
+    constant such as `YEARS = [2021, 2022, ...]` is the same mistake in a
+    different place, so any literal run of consecutive years that overlaps
+    the window is flagged too.
+    """
+    window = set(EXPECTED_YEARS)
+    offenders = []
+    for folder in ("core", "gui", "scripts"):
+        for path in sorted((REPO / folder).glob("*.py")):
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+            for node in ast.walk(tree):
+                if not isinstance(node, (ast.List, ast.Tuple)) \
+                        or len(node.elts) < 2:
+                    continue
+                values = [e.value for e in node.elts
+                          if isinstance(e, ast.Constant)
+                          and isinstance(e.value, int)]
+                if (len(values) == len(node.elts)
+                        and window & set(values)
+                        and values == list(range(values[0],
+                                                 values[0] + len(values)))):
+                    offenders.append(f"{folder}/{path.name}:{node.lineno}")
+    assert not offenders, (
+        f"fiscal window written out longhand: {offenders}; "
+        f"use config.FISCAL_YEARS")
 
 
 @pytest.mark.parametrize("script", CLI_SCRIPTS)

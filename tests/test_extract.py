@@ -1,4 +1,4 @@
-"""Offline tests for esef_extract.py. Run: python test_extract.py"""
+"""Offline tests for esef_extract.py."""
 
 from datetime import date
 
@@ -63,7 +63,6 @@ def test_period_parsing():
     # 52/53-week retailer year ending on a Saturday.
     start, end, _ = _parse_period("2024-01-29T00:00:00/2025-01-27T00:00:00")
     assert end == date(2025, 1, 26)
-    print("  period parsing, exclusive end normalised          OK")
 
 
 def test_resolves_current_year_not_comparative():
@@ -72,7 +71,6 @@ def test_resolves_current_year_not_comparative():
     cy, _ = run_extract(d)
     assert cy.facts["revenue"].value == 1_000_000_000, cy.facts["revenue"].value
     assert cy.facts["total_equity"].value == 550_000_000
-    print("  comparative prior-year facts excluded             OK")
 
 
 def test_dimensional_facts_excluded():
@@ -85,7 +83,6 @@ def test_dimensional_facts_excluded():
     cy, index = run_extract(d)
     assert index.skipped_dimensional == 2, index.skipped_dimensional
     assert cy.facts["revenue"].value == 1_000_000_000
-    print("  segment breakdowns discarded, total kept          OK")
 
 
 def test_capex_sign_and_composite_debt():
@@ -101,7 +98,6 @@ def test_capex_sign_and_composite_debt():
     assert ltd.value == 225_000_000, ltd.value
     assert ltd.derivation == "summed"
     assert len(ltd.components) == 2
-    print("  capex sign flipped; debt summed incl. IFRS 16     OK")
 
 
 def test_partial_composite_records_what_it_found():
@@ -112,7 +108,6 @@ def test_partial_composite_records_what_it_found():
     ltd = cy.facts["long_term_debt"]
     assert ltd.value == 180_000_000
     assert ltd.components == ["ifrs-full:NoncurrentPortionOfNoncurrentBorrowings"]
-    print("  partial sum kept, missing lease liability visible OK")
 
 
 def test_extension_element_not_resolved():
@@ -136,7 +131,6 @@ def test_extension_element_not_resolved():
     assert cy.missing_required == ["ebit"]
     assert cy.status == "partial"
     assert "testco:RisultatoOperativo" in index.extensions
-    print("  extension element left unresolved, not guessed    OK")
 
 
 def test_ebit_fallback_is_opt_in_and_flagged():
@@ -155,7 +149,6 @@ def test_ebit_fallback_is_opt_in_and_flagged():
     assert on.facts["ebit"].value == 108_000_000, on.facts["ebit"].value
     assert on.facts["ebit"].derivation == "computed"
     assert on.status == "complete"
-    print("  EBIT fallback off by default, marked 'computed'   OK")
 
 
 def test_non_calendar_fiscal_year():
@@ -169,7 +162,6 @@ def test_non_calendar_fiscal_year():
     index = FactIndex(d)
     assert index.annual("Revenue", date(2024, 6, 30)).value == 500_000_000
     assert index.instant("Equity", date(2024, 6, 30)).value == 300_000_000
-    print("  June year end matched, calendar decoy ignored     OK")
 
 
 def test_prefers_eur_over_other_units():
@@ -178,7 +170,6 @@ def test_prefers_eur_over_other_units():
         ("ifrs-full:Revenue", CURRENT, 1_000_000),
     )
     assert FactIndex(d).annual("Revenue", FY_END).value == 1_000_000
-    print("  duplicate concept, EUR fact preferred             OK")
 
 
 def test_non_numeric_and_interim_ignored():
@@ -189,7 +180,6 @@ def test_non_numeric_and_interim_ignored():
     cy, index = run_extract(d)
     assert index.skipped_nonnumeric == 1
     assert cy.facts["revenue"].value == 1_000_000_000   # not the half-year
-    print("  text blocks and interim periods ignored           OK")
 
 
 def test_complete_filing_reaches_all_20():
@@ -198,7 +188,6 @@ def test_complete_filing_reaches_all_20():
     assert cy.status == "complete"
     assert len(cy.facts) == 20
     assert len(cy.assumed_zeros) == 8   # every optional field absent here
-    print("  complete filing -> 20 fields, 8 assumed zeros     OK")
 
 
 def test_grouped_sum_does_not_double_count():
@@ -214,7 +203,6 @@ def test_grouped_sum_does_not_double_count():
     # short form (-60m) already in full_filing. Intangibles adds -10m.
     assert cy.facts["capex"].value == 80_000_000, cy.facts["capex"].value
     assert len(cy.facts["capex"].components) == 2
-    print("  grouped sums: alternate spellings not doubled     OK")
 
 
 def test_extension_ebit_matched_but_flagged():
@@ -228,7 +216,6 @@ def test_extension_ebit_matched_but_flagged():
     assert cy.facts["ebit"].value == 120_000_000
     assert cy.facts["ebit"].derivation == "extension"
     assert cy.status == "complete"
-    print("  company extension for EBIT matched, marked        OK")
 
 
 def test_ebit_derivation_strips_finance_income():
@@ -247,7 +234,6 @@ def test_ebit_derivation_strips_finance_income():
     # 100m pre-tax + 8m finance costs - 3m finance income - 2m associates
     assert cy.facts["ebit"].value == 103_000_000, cy.facts["ebit"].value
     assert cy.facts["ebit"].derivation == "computed"
-    print("  EBIT derivation nets out the financial result     OK")
 
 
 def test_combined_capex_tag_not_double_counted():
@@ -262,7 +248,6 @@ def test_combined_capex_tag_not_double_counted():
     cy, _ = run_extract(d)
     assert cy.facts["capex"].value == 95_000_000, cy.facts["capex"].value
     assert cy.facts["capex"].derivation == "reported"
-    print("  combined capex tag wins, components not added     OK")
 
 
 def test_split_depreciation_and_amortisation():
@@ -278,7 +263,6 @@ def test_split_depreciation_and_amortisation():
     cy, _ = run_extract({"facts": facts})
     assert cy.facts["depreciation_amortisation"].value == 50_000_000
     assert cy.facts["depreciation_amortisation"].derivation == "summed"
-    print("  split depreciation + amortisation summed          OK")
 
 
 def test_net_income_rebuilt_from_total_profit():
@@ -300,7 +284,6 @@ def test_net_income_rebuilt_from_total_profit():
     del facts["nci"]
     cy2, _ = run_extract({"facts": facts})
     assert cy2.facts["net_income"].value == 80_000_000
-    print("  net income rebuilt as ProfitLoss less minorities  OK")
 
 
 def test_pretax_rebuilt_from_profit_plus_tax():
@@ -313,7 +296,6 @@ def test_pretax_rebuilt_from_profit_plus_tax():
     # 75m profit + 25m tax charge
     assert cy.facts["pretax_income"].value == 100_000_000
     assert cy.facts["pretax_income"].derivation == "computed"
-    print("  pre-tax rebuilt as ProfitLoss + tax charge        OK")
 
 
 def _no_current_subtotals(extra_dur=(), extra_inst=()):
@@ -335,13 +317,11 @@ def test_retailer_without_subtotals_is_not_a_financial():
     d = _no_current_subtotals(extra_inst=["ifrs-full:Inventories"])
     cy, _ = run_extract(d)
     assert cy.likely_financial is False
-    print("  retailer with inventories not called financial    OK")
 
 
 def test_missing_subtotals_alone_is_not_enough():
     cy, _ = run_extract(_no_current_subtotals())
     assert cy.likely_financial is False
-    print("  absent subtotals alone do not exclude a company   OK")
 
 
 def test_bank_with_positive_markers_is_flagged():
@@ -350,7 +330,6 @@ def test_bank_with_positive_markers_is_flagged():
                     "ifrs-full:DepositsFromCustomers"])
     cy, _ = run_extract(d)
     assert cy.likely_financial is True
-    print("  bank markers + no inventories -> flagged          OK")
 
 
 def test_current_subtotals_rebuilt_from_identity():
@@ -375,7 +354,6 @@ def test_current_subtotals_rebuilt_from_identity():
         cy.facts["total_current_liabilities"].value
     # And having rebuilt them, it must no longer look like a bank.
     assert cy.likely_financial is False
-    print("  current subtotals rebuilt from the identity       OK")
 
 
 def test_pattern_tier_matches_a_lone_extension():
@@ -387,7 +365,6 @@ def test_pattern_tier_matches_a_lone_extension():
     cy, _ = run_extract({"facts": facts})
     assert cy.facts["depreciation_amortisation"].value == 44_000_000
     assert cy.facts["depreciation_amortisation"].derivation == "extension"
-    print("  lone French-named extension matched by pattern    OK")
 
 
 def test_pattern_tier_refuses_ambiguity_and_deny_list():
@@ -413,7 +390,6 @@ def test_pattern_tier_refuses_ambiguity_and_deny_list():
         "period": CURRENT, "entity": "lei:TEST", "unit": EUR}}
     cy2, _ = run_extract({"facts": facts2})
     assert cy2.facts["depreciation_amortisation"].value is None
-    print("  pattern tier refuses ambiguity, honours deny list OK")
 
 
 def _no_capex(extra):
@@ -433,7 +409,6 @@ def test_capex_pattern_matches_combined_extension():
     assert cy.facts["capex"].value == 88_000_000, cy.facts["capex"].value
     assert cy.facts["capex"].derivation == "extension"
     assert cy.facts["capex"].sign_flipped is True
-    print("  capex pattern matches a combined extension        OK")
 
 
 def test_capex_pattern_ignores_disposals_and_carrying_amounts():
@@ -444,7 +419,6 @@ def test_capex_pattern_ignores_disposals_and_carrying_amounts():
     ]))
     assert cy.facts["capex"].value is None, cy.facts["capex"].value
     assert "capex" in cy.missing_required
-    print("  capex pattern rejects proceeds and depreciation   OK")
 
 
 def test_kesko_depreciation_tie_break():
@@ -463,10 +437,9 @@ def test_kesko_depreciation_tie_break():
     assert cy.facts["depreciation_amortisation"].value == 61_000_000, \
         cy.facts["depreciation_amortisation"].value
     assert cy.facts["depreciation_amortisation"].derivation == "extension"
-    print("  combined D&A line outranks a lone depreciation    OK")
 
 
-def test_interest_expense_pattern_demotes_lease_only():
+def test_interest_expense_prefers_the_gross_extension_line():
     facts = {k: v for k, v in full_filing()["facts"].items()}
     for tag, concept, val in [
         ("a", "kesk:InterestExpenseAndOtherFinanceCosts", 39_000_000),
@@ -478,11 +451,12 @@ def test_interest_expense_pattern_demotes_lease_only():
             "concept": concept, "period": CURRENT,
             "entity": "lei:TEST", "unit": EUR}}
     cy, _ = run_extract({"facts": facts})
-    # Income denied outright; "paid" not preferred; lease demoted.
+    # InterestExpenseAndOtherFinanceCosts is a listed element, so the
+    # company's own gross line wins over lease-only interest, the cash-flow
+    # "paid" figure and finance income -- recorded as an extension.
     assert cy.facts["interest_expense"].value == 39_000_000, \
         cy.facts["interest_expense"].value
     assert cy.facts["interest_expense"].derivation == "extension"
-    print("  interest: income denied, lease demoted            OK")
 
 
 def test_interest_never_assumed_zero_when_it_resolves():
@@ -493,7 +467,6 @@ def test_interest_never_assumed_zero_when_it_resolves():
     cy, _ = run_extract({"facts": facts})
     assert cy.facts["interest_expense"].value == 12_000_000
     assert "interest_expense" not in cy.assumed_zeros
-    print("  tagged interest not overwritten by assumed zero   OK")
 
 
 def _with_debt_no_interest():
@@ -512,7 +485,6 @@ def test_debt_without_interest_blocks_the_year():
     # All 100 cells are present -- D111 would pass. The workbook cannot see
     # this, which is exactly why the pipeline has to.
     assert not cy.missing_required
-    print("  debt + assumed-zero interest -> blocked, partial  OK")
 
 
 def test_debt_free_company_keeps_its_zero():
@@ -521,7 +493,6 @@ def test_debt_free_company_keeps_its_zero():
     assert cy.facts["interest_expense"].derivation == "assumed_zero"
     assert not cy.blocked
     assert cy.status == "complete"
-    print("  debt-free company keeps a legitimate zero         OK")
 
 
 def test_reported_zero_short_term_debt_is_not_overwritten_by_the_proxy():
@@ -551,7 +522,6 @@ def test_reported_zero_short_term_debt_is_not_overwritten_by_the_proxy():
     # against the short-term figure that already resolved. It ends up
     # assumed_zero (the normal absence default), never debt_proxy.
     assert cy.facts["long_term_debt"].derivation == "assumed_zero"
-    print("  reported zero short-term debt not overwritten by proxy   OK")
 
 
 def test_reported_zero_noncurrent_liabilities_used_as_is():
@@ -573,49 +543,39 @@ def test_reported_zero_noncurrent_liabilities_used_as_is():
     cy, _ = run_extract({"facts": facts})
     assert cy.facts["long_term_debt"].value == 0.0
     assert cy.facts["long_term_debt"].derivation == "debt_proxy"
-    print("  reported zero noncurrent liabilities used as-is          OK")
 
 
 def test_strict_interest_can_be_disabled():
     cy, _ = run_extract(_with_debt_no_interest(), strict_interest=False)
     assert not cy.blocked
     assert cy.status == "complete"
-    print("  strict interest check is switchable               OK")
 
 
-if __name__ == "__main__":
-    print("\nRunning extractor tests\n" + "-" * 54)
-    test_period_parsing()
-    test_resolves_current_year_not_comparative()
-    test_dimensional_facts_excluded()
-    test_capex_sign_and_composite_debt()
-    test_partial_composite_records_what_it_found()
-    test_extension_element_not_resolved()
-    test_ebit_fallback_is_opt_in_and_flagged()
-    test_non_calendar_fiscal_year()
-    test_prefers_eur_over_other_units()
-    test_non_numeric_and_interim_ignored()
-    test_complete_filing_reaches_all_20()
-    test_grouped_sum_does_not_double_count()
-    test_extension_ebit_matched_but_flagged()
-    test_ebit_derivation_strips_finance_income()
-    test_combined_capex_tag_not_double_counted()
-    test_split_depreciation_and_amortisation()
-    test_net_income_rebuilt_from_total_profit()
-    test_pretax_rebuilt_from_profit_plus_tax()
-    test_retailer_without_subtotals_is_not_a_financial()
-    test_missing_subtotals_alone_is_not_enough()
-    test_bank_with_positive_markers_is_flagged()
-    test_current_subtotals_rebuilt_from_identity()
-    test_pattern_tier_matches_a_lone_extension()
-    test_pattern_tier_refuses_ambiguity_and_deny_list()
-    test_capex_pattern_matches_combined_extension()
-    test_capex_pattern_ignores_disposals_and_carrying_amounts()
-    test_kesko_depreciation_tie_break()
-    test_interest_expense_pattern_demotes_lease_only()
-    test_interest_never_assumed_zero_when_it_resolves()
-    test_debt_without_interest_blocks_the_year()
-    test_debt_free_company_keeps_its_zero()
-    test_strict_interest_can_be_disabled()
-    print("-" * 54)
-    print("all tests passed\n")
+ACQUIRED = "ifrs-full:CashFlowsUsedInObtainingControlOfSubsidiariesOrOtherBusinessesClassifiedAsInvestingActivities"
+DIVESTED = "ifrs-full:CashFlowsFromLosingControlOfSubsidiariesOrOtherBusinessesClassifiedAsInvestingActivities"
+
+
+def test_acquisitions_are_netted_of_divestitures():
+    cy, _ = run_extract(full_filing(extra=[
+        (ACQUIRED, CURRENT, 80_000_000),
+        (DIVESTED, CURRENT, 30_000_000),
+    ]))
+    acq = cy.facts["acquisitions_net"]
+    assert acq.value == 50_000_000, acq.value
+    assert acq.derivation == "summed"
+    assert len(acq.components) == 2
+
+
+def test_acquisitions_netting_ignores_the_filers_sign_convention():
+    # Some filers tag both flows negative; the element names already say
+    # which way the cash moved, so the result must be the same.
+    cy, _ = run_extract(full_filing(extra=[
+        (ACQUIRED, CURRENT, -80_000_000),
+        (DIVESTED, CURRENT, -30_000_000),
+    ]))
+    assert cy.facts["acquisitions_net"].value == 50_000_000
+
+
+def test_divestitures_alone_give_a_negative_net():
+    cy, _ = run_extract(full_filing(extra=[(DIVESTED, CURRENT, 30_000_000)]))
+    assert cy.facts["acquisitions_net"].value == -30_000_000

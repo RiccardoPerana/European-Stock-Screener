@@ -13,8 +13,6 @@ Dashboard job runner: the failure modes that made the app unusable.
 import json
 import time
 
-import pytest
-
 from tasks import TaskRunner
 import app as appmod
 

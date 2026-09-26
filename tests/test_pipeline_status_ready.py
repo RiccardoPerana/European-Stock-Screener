@@ -99,3 +99,25 @@ def test_prices_fetched_today_is_not_stale_against_identity_over_a_weekend(
     assert prices["health"] == "ok", (
         f"prices fetched today should not read stale just because the "
         f"quote it fetched is dated {last_trading_day}: {prices['message']!r}")
+
+
+
+def test_failed_years_do_not_count_as_complete_companies(db_path, tmp_path):
+    """
+    A company recorded as failed for every year (a financial the extractor
+    excluded, say) has five company_year rows but no usable data. The
+    "companies with five complete years" count must match
+    Cache.complete_entities(), which ignores it.
+    """
+    with Cache(db_path) as db:
+        for year in YEARS:
+            db.mark_failed("FAILEDLEI00000000001", year, "esef", "test-1.0",
+                           "financial")
+        expected = len(db.complete_entities(YEARS))
+
+    steps = ps.stages(db=db_path, params_path=tmp_path / "missing.json",
+                      tables_path=tmp_path / "missing.json",
+                      template=tmp_path / "missing.xlsx",
+                      cache_dir=tmp_path / "cache", out_dir=tmp_path / "out")
+    extract = next(s for s in steps if s["key"] == "extract")
+    assert extract["count"] == expected == 1

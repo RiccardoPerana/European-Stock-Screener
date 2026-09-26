@@ -1,7 +1,7 @@
 """
 config.fiscal_years() -- the screen_config.json "fiscal_years" override.
 
-Section 3.1 requires exactly five CONSECUTIVE years. Checking length and
+The model requires exactly five CONSECUTIVE years. Checking length and
 ascending order alone would let a window with a gap in it (e.g. skipping
 one year) pass silently, and every multi-year calculation downstream would
 quietly use a non-consecutive window.
