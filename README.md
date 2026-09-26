@@ -160,9 +160,9 @@ currently held in the portfolio once per calendar day (Yahoo Finance, held
 positions only — a handful, so it is quick). Disable with
 `--no-daily-prices`.
 
-Run it from the repository root. Paths (`financials.db`, `parameters.json`,
-the template, `valuations/`) are resolved relative to the project, not the
-working directory, but a few ingestion helpers still assume the root.
+Paths (`financials.db`, `parameters.json`, the template, `valuations/`,
+`out/`) are resolved relative to the project, not the working directory, so
+it can be started from anywhere.
 
 ### Building the portable executable
 
@@ -243,8 +243,10 @@ sheet in your browser (filled with the project's own fictional demo
 company, the same fixture the regression test checks against), plus a
 link to download the workbook directly.
 
-- **Fair value range:** intrinsic value ± 25%.
-- **Undervalued (research flag):** market price < value × 0.75.
+- **Fairly valued:** upside (fair value ÷ price − 1) between −25% and +25%.
+- **Undervalued:** fair value more than 25% above the market price, i.e.
+  market price < value ÷ 1.25 (about 20% below fair value). The research
+  flag is that verdict with no warning attached.
 - **Exit target:** market price ≥ value (the midpoint).
 - The portfolio opens a notional €100 position the first time a company is
   flagged undervalued, and closes it when the verdict is no longer
@@ -254,7 +256,8 @@ link to download the workbook directly.
 
 - `valuations/<date>/` — one workbook and one `*.provenance.json` per
   company, plus `run_<date>.json` and `report_<date>.html`.
-- `output/` — relocated report exports (coverage scans, audits).
+- `out/` — the ESEF coverage scans (`esef_coverage_<timestamp>.csv/.json`)
+  the extractor reads.
 
 ## Data sources and their terms
 
@@ -280,39 +283,19 @@ python -m pytest
 `tests/golden_test.py` recalculates the shipped demo workbook and every
 negative fixture, and confirms the result against the regression anchor
 above — this proves the recalculation *engine* is correct: given known
-inputs, the workbook returns the known output. `pytest` covers the cache,
-the extractor, the CLI entry points, the dashboard job runner, and the
-report sections.
+inputs, the workbook returns the known output. `pytest` (configured by
+`pytest.ini`) covers the cache, the extractor, the parameter parsers, the
+share-count worksheet, the CLI entry points, the dashboard job runner, the
+portfolio tracker and the report sections.
 
 Engine correctness alone does not prove that a given company's *inputs*
 were extracted correctly — twenty fields, five fiscal years, taxonomy
 element matching, sign conventions and unit scaling all sit between a
-filing and a number in the model. A set of diagnostic tools in `tools/`
-exists specifically to close that gap and to attest the correctness of the
-template on real data, rather than only on the shipped demo:
-
-- **`tools/verify_company.py`** checks one company's extracted figures by
-  hand against its own published annual report.
-- **`tools/extraction_audit.py`** checks every extracted company for
-  internal self-contradiction — interest paid on debt the extraction never
-  found, liabilities the balance sheet cannot account for, and similar
-  identities that must hold regardless of any modelling assumption.
-- **`tools/invested_capital_probe.py`** traces implausible valuations
-  (very large implied upside) back to the specific reinvestment/ROIC
-  mechanism producing them, to distinguish a genuine finding from a model
-  fault.
-- **`tools/normalisation_probe.py`** measures how far a company's
-  five-year normalized margin diverges from its recent actual margin, to
-  surface valuations that quietly rest on an assumed reversion.
-- **`tools/sector_audit.py`** cross-checks the two independent signals
-  used to exclude financial companies (a name-based filter and a
-  balance-sheet shape heuristic) against each other, to quantify how well
-  they agree rather than assume it.
-
-None of these are run automatically as part of a screen; they are
-maintenance tools, run periodically or after a methodology change, and
-their findings are what the extraction and screening logic in `core/` is
-built on.
+filing and a number in the model. The extractor guards that path itself:
+every value is stored with its provenance (reported, summed, computed,
+assumed zero, sign-flipped), a company-year that contradicts itself (debt
+without interest, or interest without debt) is blocked rather than valued,
+and each run prints a per-field failure report.
 
 ## Engineering challenges
 
@@ -375,9 +358,9 @@ alone. The more significant ones, and how each was addressed:
 core/       pipeline: scrapers, ESEF parsing, the Excel engine, orchestration
 gui/        the local dashboard (standard-library web app)
 tests/      pytest suite + the golden gate + the synthetic-DB builder
-tools/      R&D probes and diagnostic utilities
+scripts/    the unattended GitHub Actions runners and encrypted-state helper
 packaging/  the portable-executable build configuration
-output/     generated report exports
+out/        generated ESEF coverage scans
 ```
 
 
