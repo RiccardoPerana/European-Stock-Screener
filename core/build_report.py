@@ -220,8 +220,13 @@ button:disabled{background:var(--void); cursor:not-allowed}
 .summary-row .perf-col .perf{margin-top:.5rem; flex:1; min-height:0;
   display:flex; flex-direction:column; justify-content:flex-end}
 .perf{margin:1.5rem 0 .25rem}
-.perf svg{width:100%; height:auto; display:block; touch-action:none}
-.perf .empty{fill:var(--ink-soft); font-size:14px; font-weight:600}
+/* pan-y, not none: a vertical swipe that starts on the chart still
+   scrolls the page on a phone; a sideways drag scrubs the tooltip. */
+.perf svg{width:100%; height:auto; display:block; touch-action:pan-y}
+/* --k is set by PERF_FIT_JS on a narrow screen, where the 640-unit
+   viewBox is drawn at about half size and would shrink its text with
+   it; it scales the text back up to the size written here. */
+.perf .empty{fill:var(--ink-soft); font-size:calc(14px * var(--k, 1)); font-weight:600}
 .perf .base{stroke:var(--rule); stroke-width:1; stroke-dasharray:2 3;
   vector-effect:non-scaling-stroke}
 .perf .area{fill:var(--rule-soft); opacity:.6}
@@ -234,15 +239,23 @@ button:disabled{background:var(--void); cursor:not-allowed}
    grey instead of red or green. */
 .perf-flat .area.neg{fill:var(--rule-soft)}
 .perf-flat .end.up,.perf-flat .end.down{fill:var(--ink-soft)}
-.perf .axis{fill:var(--ink-soft); font-size:11px}
+.perf .axis{fill:var(--ink-soft); font-size:calc(11px * var(--k, 1))}
 .perf .cursor{fill:var(--ink)}
 .perf .tipbox{fill:var(--paper); stroke:var(--rule)}
-.perf .tiptext{fill:var(--ink); font-size:11px; font-variant-numeric:tabular-nums}
+.perf .tiptext{fill:var(--ink); font-size:calc(11px * var(--k, 1));
+  font-variant-numeric:tabular-nums}
 .pick-why{color:var(--ink-soft); font-size:.9375rem; margin:.25rem 0 0;
   max-width:var(--measure)}
 .band{display:block; width:100%; height:52px; margin:.5rem 0 .25rem}
 .band text{font-size:11px; fill:var(--ink-soft);
   font-family:inherit; font-variant-numeric:tabular-nums}
+/* Scrolls sideways inside the page column if a table cannot fit a
+   narrow screen, rather than widening the whole page (see also the
+   scroll shadows in the max-width:620px block). */
+.table-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch; margin-top:.5rem}
+/* The table's own top margin moves to the wrapper, where it still
+   collapses with the heading or note above as it did unwrapped. */
+.table-scroll > table{margin-top:0}
 table{width:100%; border-collapse:collapse; margin-top:.5rem; font-size:.9375rem}
 th{text-align:left; font-weight:600; font-size:.8125rem; color:var(--ink-soft);
   padding:.5rem .75rem .5rem 0; border-bottom:1px solid var(--ink)}
@@ -250,6 +263,8 @@ th.num,td.num{text-align:right}
 td{padding:.7rem .75rem .7rem 0; border-bottom:1px solid var(--rule-soft);
   vertical-align:top}
 td.reason{color:var(--ink-soft); width:46%}
+/* A date never breaks at its hyphens ("2026-09-" / "24"). */
+td.date{white-space:nowrap}
 tr:last-child td{border-bottom:1px solid var(--rule)}
 .t-name{font-weight:500}
 .t-name small{display:block; color:var(--ink-soft); font-weight:400}
@@ -270,16 +285,19 @@ tr:last-child td{border-bottom:1px solid var(--rule)}
    grid down a line on every click -- flexbox has no such pass; items
    wrap in strict DOM order. `gap` keeps the spacing uniform on both
    axes regardless of how the tickers wrap. */
-.tickers{display:flex; flex-wrap:wrap; align-items:flex-start;
+.tickers{--cols:10; display:flex; flex-wrap:wrap; align-items:flex-start;
   gap:.85rem; margin:.75rem 0 1rem}
 /* Ten even columns, not content-sized chips: flex-basis is the row
    width minus nine gaps, divided by ten, so exactly ten land on a row
    regardless of how short or long any one ticker is -- min-width:0
    overrides flexbox's default of never shrinking below a chip's own
    content, which would otherwise let one long ticker bump the count on
-   its row. font-size is set to fit that column comfortably. */
+   its row. font-size is set to fit that column comfortably. On narrower
+   screens --cols drops (see the media queries below) so each column stays
+   wide enough for its ticker; at ten columns on a phone they overlapped. */
 .tick{font:inherit; font-size:.875rem; font-weight:600; padding:0;
-  flex:0 0 calc((100% - 9 * .85rem) / 10); min-width:0; border:0;
+  flex:0 0 calc((100% - (var(--cols) - 1) * .85rem) / var(--cols));
+  min-width:0; border:0;
   background:none; color:var(--ink); cursor:pointer; text-align:center;
   white-space:nowrap}
 /* Both need an explicit background, and .tickers .tick:hover rather
@@ -319,10 +337,41 @@ footer p{margin:.4rem 0; max-width:var(--measure)}
 footer p.full{max-width:none}
 a{color:inherit}
 :focus-visible{outline:2px solid var(--ink); outline-offset:3px}
+/* Below 800px the two .summary-row columns no longer fit side by side
+   (their flex bases, 20rem + 24rem + the 3rem gap = 752px, plus the .wrap
+   padding), so the chart stacks under the figures. The hidden twin
+   heading then has no column to level with and would only leave a blank
+   line above the chart. */
+@media (max-width:799.98px){
+  .summary-row .perf-col .perf-head{display:none}
+  .summary-row .perf-col .perf{margin-top:0}
+  .tickers{--cols:6}
+  /* A ticker longer than its column wraps inside it rather than running
+     over its neighbour. */
+  .tick{white-space:normal; overflow-wrap:anywhere}
+}
 @media (max-width:620px){
   .wrap{padding:2rem 1.1rem 4rem}
   .figures{gap:1.5rem}
   td.reason{width:auto}
+  nav{gap:1rem; flex-wrap:wrap}
+  th,td{padding-right:.5rem}
+  /* The usual scroll-shadow trick, for a table too wide for the screen: a
+     soft shadow on whichever edge has more table beyond it; the paper-
+     coloured covers scroll with the content and hide it once that edge is
+     reached. Phones only -- no table overflows a wider page, and text over
+     a gradient loses its subpixel smoothing. */
+  .table-scroll{background:
+    linear-gradient(to right, var(--paper) 60%, transparent) left/2rem 100% no-repeat local,
+    linear-gradient(to left, var(--paper) 60%, transparent) right/2rem 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgba(0,0,0,.16), transparent) left/.8rem 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.16), transparent) right/.8rem 100% no-repeat scroll}
+  /* iOS zooms the page in on any form control under 16px when it takes
+     focus, and leaves it zoomed. */
+  .sheet-picker select{font-size:16px}
+}
+@media (max-width:480px){
+  .tickers{--cols:4}
 }
 @media print{body{background:#fff} .wrap{padding:0}}
 /* Skins SheetJS's bare sheet_to_html() output for the methodology.html
@@ -643,6 +692,26 @@ def eur(v) -> str:
 
 PERF_JS = """
 (function(){
+  // On a narrow screen the 640-unit viewBox is drawn at about half size,
+  // which shrinks the axis labels, tooltip and markers along with it. k is
+  // viewBox units per CSS pixel there, so a size times k is drawn at that
+  // size on screen; wider screens keep k = 1 and look as they always have.
+  var narrow = window.matchMedia && window.matchMedia('(max-width:620px)');
+  function scaleOf(svg){
+    var w = svg.getBoundingClientRect().width;
+    return narrow && narrow.matches && w ? svg.viewBox.baseVal.width / w : 1;
+  }
+  function fit(){
+    var all = document.querySelectorAll('.perf svg');
+    for (var i = 0; i < all.length; i++){
+      var k = scaleOf(all[i]), end = all[i].querySelector('.end');
+      all[i].style.setProperty('--k', k);          // text: see the .perf CSS
+      if (end) end.setAttribute('r', 3.5 * k);
+    }
+  }
+  fit();
+  window.addEventListener('resize', fit);
+
   var box = document.querySelector('.perf[data-pts]');
   if (!box) return;
   var pts; try { pts = JSON.parse(box.getAttribute('data-pts')); }
@@ -657,27 +726,33 @@ PERF_JS = """
     return (cx - r.left) / r.width * vb.width;
   }
   function show(ev){
-    var x = xIn(ev), best = pts[0], bd = 1e9;
+    var x = xIn(ev), best = pts[0], bd = 1e9, k = scaleOf(svg);
     for (var i = 0; i < pts.length; i++){
       var d = Math.abs(pts[i][0] - x);
       if (d < bd){ bd = d; best = pts[i]; }
     }
     cur.setAttribute('cx', best[0]); cur.setAttribute('cy', best[1]);
+    cur.setAttribute('r', 3 * k);
     cur.style.display = ''; tip.style.display = '';
     txt.textContent = best[2] + '   ' + best[3];
-    var w = txt.getComputedTextLength() + 12;
+    var w = txt.getComputedTextLength() + 12 * k, h = 18 * k;
     var tx = Math.min(Math.max(best[0] - w / 2, 2), vb.width - w - 2);
-    var ty = Math.max(best[1] - 26, 2);
+    var ty = Math.max(best[1] - 26 * k, 2);
     rect.setAttribute('x', tx); rect.setAttribute('y', ty);
-    rect.setAttribute('width', w); rect.setAttribute('height', 18);
-    txt.setAttribute('x', tx + 6); txt.setAttribute('y', ty + 13);
+    rect.setAttribute('width', w); rect.setAttribute('height', h);
+    txt.setAttribute('x', tx + 6 * k); txt.setAttribute('y', ty + 13 * k);
   }
   function hide(){ cur.style.display = 'none'; tip.style.display = 'none'; }
   svg.addEventListener('mousemove', show);
   svg.addEventListener('mouseleave', hide);
-  svg.addEventListener('touchmove', function(e){ show(e); e.preventDefault(); },
-                       {passive:false});
-  svg.addEventListener('touchend', hide);
+  // Passive, and no preventDefault: the svg's touch-action:pan-y leaves
+  // vertical swipes to scroll the page. A tap shows that day's value and
+  // it stays up until the next touch somewhere else.
+  svg.addEventListener('touchstart', show, {passive:true});
+  svg.addEventListener('touchmove', show, {passive:true});
+  document.addEventListener('touchstart', function(e){
+    if (!svg.contains(e.target)) hide();
+  }, {passive:true});
 })();"""
 
 
@@ -864,15 +939,16 @@ def render_portfolio(marked: dict, public: bool = False,
                                           f'<td class="num">{num(p["price"])}</td>')
         return (f'<tr><td class="t-name">{esc(p["ticker"])}'
                 f'<small>{esc(p["name"])}</small></td>'
-                f'<td>{esc(p["entry_date"])}</td>{price_cells}{ret_cell(p)}</tr>')
+                f'<td class="date">{esc(p["entry_date"])}</td>'
+                f'{price_cells}{ret_cell(p)}</tr>')
 
     held_rows = "".join(held_row(p)
                         for p in sorted(held, key=lambda x: -x["return_pct"]))
 
     sold_rows = "".join(f"""
 <tr><td class="t-name">{esc(p['ticker'])}<small>{esc(p['name'])}</small></td>
-    <td>{esc(p['entry_date'])}</td>
-    <td>{esc(p['exit_date'] or '')}</td>
+    <td class="date">{esc(p['entry_date'])}</td>
+    <td class="date">{esc(p['exit_date'] or '')}</td>
     {ret_cell(p)}
     <td class="reason">{esc(exit_reason(p['exit_verdict']))}</td>
 </tr>""" for p in sorted(sold, key=lambda x: (x['exit_date'] or '', x['ticker'])))
@@ -925,10 +1001,10 @@ def render_portfolio(marked: dict, public: bool = False,
 <h2>Sold</h2>
 <p class="note">Closed when the verdict stopped being undervalued. The
 return is locked at the exit price; the row stays for the record.</p>
-<table><thead><tr>
+<div class="table-scroll"><table><thead><tr>
   <th>Company</th><th>Entered</th><th>Sold</th>
   <th class="num">Return</th><th>Verdict at exit</th>
-</tr></thead><tbody>{sold_rows}</tbody></table>"""
+</tr></thead><tbody>{sold_rows}</tbody></table></div>"""
 
     return f"""<!DOCTYPE html>
 <html lang="en"><head>
@@ -961,11 +1037,11 @@ return is locked at the exit price; the row stays for the record.</p>
 </div>
 
 <h2>Held now</h2>
-<table><thead><tr>
+<div class="table-scroll"><table><thead><tr>
   <th>Company</th><th>Entered</th>{'' if public else
   '<th class="num">Entry</th><th class="num">Now</th>'}<th class="num">Since entry</th>
 </tr></thead><tbody>{held_rows or
-  f'<tr><td colspan="{3 if public else 5}" class="muted">Nothing held.</td></tr>'}</tbody></table>
+  f'<tr><td colspan="{3 if public else 5}" class="muted">Nothing held.</td></tr>'}</tbody></table></div>
 {missing_note}
 {void_note}
 {sold_section}
