@@ -1,5 +1,5 @@
 {
-  "_comment": "Research-flag policy, Section 10.2. Kept OUT of the workbook deliberately: the verdict at D86 is the model's opinion and must never be re-derived in Python, but the research flag is the application's own, strictly narrower filter. Keeping it here means it can be tuned against real distributions without touching the engine or invalidating the golden test.",
+  "_comment": "Research-flag policy. Kept OUT of the workbook deliberately: the verdict at D86 is the model's opinion and must never be re-derived in Python, but the research flag is the application's own, strictly narrower filter. Keeping it here means it can be tuned against real distributions without touching the engine or invalidating the golden test.",
   "research_flag": {
     "require_verdict": "UNDERVALUED - investigate",
     "suppress_on_severity": [
@@ -17,5 +17,5 @@
     },
     "_graded_note": "A graded check is neither exempt nor absolute. It suppresses only past a magnitude, so the tail is kept and the noise is dropped."
   },
-  "thresholds_note": "The +/-25% bands live in the workbook at D86 and are NOT configurable here. Section 15: run 100 names and inspect the distribution of D85 before trusting them. ASML returned -74.92%, which suggests the OVERVALUED bucket may be very crowded."
+  "thresholds_note": "The +/-25% bands live in the workbook at D86 and are NOT configurable here. Run 100 names and inspect the distribution of D85 before trusting them. ASML returned -74.92%, which suggests the OVERVALUED bucket may be very crowded."
 }

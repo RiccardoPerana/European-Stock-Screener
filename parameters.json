@@ -9,7 +9,7 @@
     "B54": "annually, plus on any announced rate change",
     "B57_B60": "annually each January, when Damodaran republishes"
   },
-  "_units": "ALL RATES ARE FRACTIONS. 0.026 is 2.6%. Writing 2.6 into B48 produces a 260% risk-free rate, which Section 6 of the brief names as the likeliest silent corruption in the pipeline.",
+  "_units": "ALL RATES ARE FRACTIONS. 0.026 is 2.6%. Writing 2.6 into B48 produces a 260% risk-free rate -- the likeliest silent corruption in the pipeline.",
   "market_wide": {
     "risk_free_rate": {
       "cell": "B48",
@@ -926,7 +926,7 @@
     }
   },
   "company_industry": {
-    "_comment": "LEI -> industry key in `industries`. There is no automated route: neither GLEIF, OpenFIGI nor ESEF carries a usable classification, and B57 drives the ENTIRE cost of equity. So this is mapped by hand, once, and reviewed when a company changes business. Section 13 question 11 of the brief asks how granular the mapping should be - that decision is recorded here.",
+    "_comment": "LEI -> industry key in `industries`. There is no automated route: neither GLEIF, OpenFIGI nor ESEF carries a usable classification, and B57 drives the ENTIRE cost of equity. So this is mapped by hand, once, and reviewed when a company changes business.",
     "724500Y6DUVHQD6OXN27": "Semiconductor",
     "BUCRF72VH5RBN7X3VL35": "Oil/Gas (Integrated)",
     "969500F7JLTX36OUI695": "Auto & Truck",
@@ -1078,26 +1078,14 @@
     "815600F4A5F5D3BCD688": "Business & Consumer Services",
     "743700KOUL1GQQQREP40": "Metals & Mining"
   },
-  "model_conventions": {
-    "_comment": "Inputs!B63:B70. The application VERIFIES these and aborts on drift. It must never write them. A drifted template produces results that are not comparable across the screen.",
-    "B63_stage1_years": 5,
-    "B64_stage2_years": 5,
-    "B65_max_growth": 0.12,
-    "B66_max_roic": 0.4,
-    "B67_min_roic": 0.02,
-    "B68_max_reinvestment": 0.9,
-    "B69_mid_year_discounting": 1,
-    "B70_min_wacc_growth_spread": 0.005,
-    "_constraint": "B63 + B64 must equal 10. D99 enforces it and the forecast grid is hard-coded to ten columns, D:M."
-  },
   "excluded_companies": {
-    "815600E546497667D288": "Section 3.2 business type; the model is not valid for it",
-    "815600B5D89DAB660021": "Section 3.2 business type; the model is not valid for it",
-    "52990001IQUJ710GHH43": "Section 3.2 business type; the model is not valid for it",
-    "969500JJ71T2DIPDVV84": "Section 3.2 business type; excluded in bulk",
-    "724500973ODKK3IFQ447": "Section 3.2 business type; excluded in bulk",
-    "549300ZIL1V7D7F3YH40": "Section 3.2 business type; excluded in bulk",
-    "549300FLGHUKNZMHZN17": "Section 3.2 business type; excluded in bulk",
-    "724500J0ITXIWK2CJX62": "Section 3.2 business type; excluded in bulk"
+    "815600E546497667D288": "Excluded business type; the model is not valid for it",
+    "815600B5D89DAB660021": "Excluded business type; the model is not valid for it",
+    "52990001IQUJ710GHH43": "Excluded business type; the model is not valid for it",
+    "969500JJ71T2DIPDVV84": "Excluded business type; excluded in bulk",
+    "724500973ODKK3IFQ447": "Excluded business type; excluded in bulk",
+    "549300ZIL1V7D7F3YH40": "Excluded business type; excluded in bulk",
+    "549300FLGHUKNZMHZN17": "Excluded business type; excluded in bulk",
+    "724500J0ITXIWK2CJX62": "Excluded business type; excluded in bulk"
   }
 }

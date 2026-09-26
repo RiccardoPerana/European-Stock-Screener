@@ -3,9 +3,16 @@ financials.db
 portfolio.db
 valuations/
 public/
+out/
 .esef_cache/
 .id_cache/
 .damodaran/
+
+# Personal or run-specific inputs: the share-count worksheet, hand-exported
+# prices, and the fiscal window once it has been rolled forward
+shares.csv
+prices.csv
+screen_config.json
 
 # Local credentials / environment
 .env
