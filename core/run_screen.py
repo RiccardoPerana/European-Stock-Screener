@@ -15,8 +15,8 @@ the same RunSummary without touching this file.
     python run_screen.py --legend       print the full column reference
 
 OUTPUTS
-    valuations/DATE/TICKER_DATE.xlsx             the completed workbook
-    valuations/DATE/TICKER_DATE.provenance.json  where every number came from
+    valuations/DATE/TICKER_EXCH_DATE.xlsx             the completed workbook
+    valuations/DATE/TICKER_EXCH_DATE.provenance.json  where every number came from
     valuations/DATE/results_DATE.xlsx            one row per company
     valuations/DATE/run_DATE.json                counts, triggers, the queue
 """
@@ -80,7 +80,7 @@ def write_results_workbook(path: Path, summary: RunSummary) -> None:
 
 
 def main() -> int:
-    report.utf8_stdout()
+    config.utf8_stdout()
 
     p = argparse.ArgumentParser(
         description="Run the screen over the universe.",
@@ -115,8 +115,7 @@ def main() -> int:
     tables = json.loads(args.tables.read_text(encoding="utf-8"))
     policy = json.loads(args.policy.read_text(encoding="utf-8"))
 
-    # One folder per run. After four quarterly screens a flat directory
-    # holds 500+ files with only a date suffix to tell them apart.
+    # One folder per run, so each run's hundreds of files stay together.
     stamp = date.today().isoformat()
     run_dir = args.out_dir / stamp
 

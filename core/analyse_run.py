@@ -40,21 +40,18 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
+import config
+from pipeline import SIZE_BUCKETS
+
 # Below this, a bucket's percentages are noise: with three companies, one
 # outcome moves the rate by 33 points. Rates are still printed but marked,
 # because an unmarked "100%" over one company invites a conclusion the data
 # cannot support.
 MIN_FOR_RATES = 5
 
-# Bucket edges in EUR millions. 4,300 is the credit-table cut-off from
-# refdata_tables.json, so it is the one size boundary the model already
-# treats as meaningful.
-BUCKETS = [
-    ("micro      < 100m", 0, 100),
-    ("small  100 - 500m", 100, 500),
-    ("mid    500 - 4.3bn", 500, 4300),
-    ("large      > 4.3bn", 4300, float("inf")),
-]
+# The screen's own size buckets (EUR millions), so this breakdown and the
+# run summary's "by size" table always agree.
+BUCKETS = [(label, low, high) for low, high, label in SIZE_BUCKETS]
 
 
 def pick_run(root: Path, run_date: str | None) -> Path:
@@ -124,18 +121,13 @@ def bucket_of(cap: float | None) -> str | None:
 
 def main() -> int:
     p = argparse.ArgumentParser(description="Split run results by size.")
-    p.add_argument("--dir", type=Path, default=Path("./valuations"))
+    p.add_argument("--dir", type=Path, default=config.OUT_DIR)
     p.add_argument("--date", metavar="YYYY-MM-DD",
                    help="Analyse one run only. Sidecars accumulate across "
                         "runs, so without this a company screened twice is "
                         "counted twice.")
     args = p.parse_args()
-    for stream in (sys.stdout, sys.stderr):
-        if hasattr(stream, "reconfigure"):
-            try:
-                stream.reconfigure(encoding="utf-8")
-            except (ValueError, OSError):
-                pass
+    config.utf8_stdout()
 
     if not args.dir.exists():
         sys.exit(f"{args.dir} not found. Run run_screen.py first.")

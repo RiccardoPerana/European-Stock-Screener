@@ -27,8 +27,9 @@ Almost all extraction error lives here, so each is handled explicitly:
 
 3. EXTENSION ELEMENTS. Companies may define their own concepts. We cannot
    resolve those without label matching, so they are left unresolved rather
-   than guessed at. This is the main reason the real D111 pass rate will sit
-   below the 426 the coverage probe reported.
+   than guessed at -- apart from the narrow pattern tier in resolve_field().
+   This is the main reason the D111 pass rate sits below the number of
+   complete filers the coverage probe reports.
 
 WHAT IT DOES NOT DO
 -------------------
@@ -62,6 +63,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from cache import Cache, CompanyYear
+from config import USER_AGENT
 from fields import (
     ALL_FIELDS,
     ASSOCIATE_PROFIT_ELEMENTS,
@@ -81,7 +83,9 @@ def normalise(name: str) -> str:
     """Lowercase, letters and digits only, for pattern matching."""
     return "".join(ch for ch in name.lower() if ch.isalnum())
 
-EXTRACTOR_VERSION = "esef-1.0.0"
+# Bump on any change to what gets extracted: cached company-years from an
+# older version are re-extracted on the next run (Cache.has()).
+EXTRACTOR_VERSION = "esef-1.1.0"
 
 # Dimensions defined by the OIM itself. Anything else in a fact's dimension
 # map is a taxonomy axis (segment, geography, class of asset...), which means
@@ -94,8 +98,6 @@ CORE_DIMENSIONS = frozenset(
 # around a year-end change.
 MIN_ANNUAL_DAYS = 350
 MAX_ANNUAL_DAYS = 380
-
-USER_AGENT = "esef-screening-tool/0.6 (research; non-commercial)"
 
 # Positive evidence that a filer really is a bank, insurer or property
 # company. Required in addition to the missing current/non-current split,
@@ -122,13 +124,17 @@ FINANCIAL_MARKER_ELEMENTS = (
 # marker is what separates Kesko and Fnac Darty from a bank.
 NON_FINANCIAL_MARKER_ELEMENTS = ("Inventories", "CurrentInventories")
 
-# Crude Section 3.2 prefilter on entity name.
+# Crude prefilter on entity name for the business types the model is not
+# valid for (banks, insurers, real estate, funds).
 #
-# The archive carries no industry classification, so until the LEI -> ticker
-# lookup table brings a GICS/ICB code with it, this is the only screen
-# available. It is a FIRST LINE, not the policy: it will miss a bank named
-# after its founder and will wrongly catch an industrial with "Holding" in
-# its name. Every drop is listed so you can eyeball them.
+# The archive carries no industry classification, so at extraction time this
+# is the only screen available; the industry mapping later catches more
+# (industry_worksheet.py --exclude-financials). It is a FIRST LINE, not the
+# policy: it will miss a bank named after its founder and can catch an
+# industrial with a matching word in its name. Every drop is listed so you
+# can eyeball them. Patterns are substrings of the lower-cased name, so keep
+# them specific: a generic word like "groep" (Dutch for "group") would drop
+# industrials such as construction groups.
 #
 # The workbook values the firm and bridges to equity, which is meaningless
 # for a bank: it subtracts deposits as debt, nets out securities that are
@@ -139,13 +145,13 @@ EXCLUDE_NAME_PATTERNS = (
     "bank", "banca", "banque", "bancaire", "sparkasse", "raiffeisen",
     "kreditbank", "hypo", "bausparkasse", "landesbank", "volksbank",
     "insurance", "assicura", "assurance", "versicherung", "verzekering",
-    "reinsurance", "ruck", "leasing",
+    "reinsurance", "rückversicherung", "rueckversicherung", "leasing",
     "immobilien", "immobiliare", "immobiliere", "real estate", "reit",
     "vastgoed", "properties", "property",
     "sicav", "sicaf", "investment fund", "capital partners",
     "sporitel", "zavarovaln", "rockcastle", "pension", "pankki",
     "asset management", "credito", "credit mutuel", "mediobanca",
-    "paribas", "natixis", "bpce", "groep", "amundi", "coface", "allfunds",
+    "paribas", "natixis", "bpce", "amundi", "coface", "allfunds",
     "euronext", "tikehau", "eurazeo", "osuuskunta", "finnvera", "taaleri",
     "capman", "aegon", "sampo", "kommunalkredit", "bpifrance", "hsbc",
     "klepierre", "gecina", "icade", "covivio", "unibail", "mercialys",
@@ -389,20 +395,25 @@ def resolve_field(index: FactIndex, f: Field, period_end: date) -> Resolution:
                               "reported" if hit.is_ifrs else "extension",
                               element=hit.concept)
 
-    if f.sum_of:
+    if f.sum_of or f.minus_of:
         total = 0.0
         found: list[str] = []
         extension_used = False
-        for group in f.sum_of:
-            # One hit per component group. Alternate spellings of the same
-            # cash flow live in the same group, so they cannot both be added.
-            for element in group:
-                hit = lookup(element, period_end)
-                if hit is not None:
-                    total += hit.value
-                    found.append(hit.concept)
-                    extension_used |= not hit.is_ifrs
-                    break
+        # A netted field takes every component as a magnitude -- see
+        # Field.minus_of for why.
+        as_magnitude = bool(f.minus_of)
+        for groups, direction in ((f.sum_of, 1), (f.minus_of, -1)):
+            for group in groups:
+                # One hit per component group. Alternate spellings of the same
+                # cash flow live in the same group, so they cannot both count.
+                for element in group:
+                    hit = lookup(element, period_end)
+                    if hit is not None:
+                        value = abs(hit.value) if as_magnitude else hit.value
+                        total += direction * value
+                        found.append(hit.concept)
+                        extension_used |= not hit.is_ifrs
+                        break
         if found:
             # A partial sum is still recorded, with its components listed,
             # so a missing lease liability is visible rather than invisible.
@@ -425,34 +436,18 @@ def resolve_field(index: FactIndex, f: Field, period_end: date) -> Resolution:
             hit = lookup(local, period_end)
             if hit is not None:
                 matches.append(hit)
-        if f.pattern_prefer and matches:
+        # Narrow to the preferred matches, if any, then require the result
+        # to be unambiguous. Two equally-good matches could be a partition
+        # to add up or the same figure counted twice, and guessing is worse
+        # than a gap.
+        if f.pattern_prefer:
             top = [m for m in matches
                    if all(p in normalise(m.local_name) for p in f.pattern_prefer)]
             if top:
                 matches = top
-        # Rank the matches, then require the best tier to be unambiguous.
-        # Two equally-good matches could be a partition to add up or the
-        # same figure counted twice, and guessing is worse than a gap.
-        def has_all(hit, terms):
-            norm = normalise(hit.local_name)
-            return all(t in norm for t in terms)
-
-        def has_any(hit, terms):
-            norm = normalise(hit.local_name)
-            return any(t in norm for t in terms)
-
-        tiers = []
-        if f.pattern_prefer:
-            clean = [m for m in matches if has_all(m, f.pattern_prefer)
-                     and not has_any(m, f.pattern_demote)]
-            tiers.append(clean)
-            tiers.append([m for m in matches if has_all(m, f.pattern_prefer)])
-        tiers.append(matches)
-
-        for tier in tiers:
-            if len(tier) == 1:
-                return Resolution(tier[0].value, "extension",
-                                  element=tier[0].concept)
+        if len(matches) == 1:
+            return Resolution(matches[0].value, "extension",
+                              element=matches[0].concept)
 
     return Resolution(None, "reported")
 
@@ -689,15 +684,12 @@ def likely_financial(index: "FactIndex", period_end: date, *,
     IAS 1 lets a bank or insurer present assets in order of liquidity
     instead of a current/non-current split. When that happens CurrentAssets
     and CurrentLiabilities genuinely do not exist, while Assets and Equity
-    do. That combination is the balance-sheet heuristic the brief asks for
-    as a second line behind name matching (EXCLUDE_NAME_PATTERNS), and it
-    catches the financials whose names give nothing away.
+    do. That combination is the balance-sheet heuristic behind name
+    matching (EXCLUDE_NAME_PATTERNS), and it catches the financials whose
+    names give nothing away.
 
-    Standalone (not a CompanyYear method) so tools/sector_audit.py can
-    call the exact same check the extractor uses -- against the four
-    already-resolved fields for a company already in financials.db, or
-    against fresh ones resolved from a re-fetched filing for a company the
-    name filter dropped -- without re-implementing it and risking drift.
+    Standalone (not a CompanyYear method) and keyword-only, so it can be
+    run against any four resolved fields, cached or freshly extracted.
     """
     unclassified = (
         total_current_assets is None
@@ -767,9 +759,9 @@ def extract(document: dict, *, lei: str, fiscal_year: int, period_end: date,
 
     # Interest expense is optional only for a company with no debt.
     #
-    # Section 11: "Never invent or substitute financial data. If a required
-    # input cannot be obtained reliably, fail before writing the workbook."
-    # A zero here for a leveraged company is invented data, and it biases in
+    # Never invent or substitute financial data: if a required input cannot
+    # be obtained reliably, fail before writing the workbook. A zero here
+    # for a leveraged company is invented data, and it biases in
     # one direction every time: D39 reads EBIT/interest as coverage, so zero
     # interest means infinite coverage, an AAA rating, the narrowest spread,
     # a lower WACC and a higher value. The workbook cannot see it, because
@@ -788,11 +780,10 @@ def extract(document: dict, *, lei: str, fiscal_year: int, period_end: date,
 
         # And the mirror image: interest paid on debt that was never
         # found. This is a contradiction rather than a judgement call --
-        # a company does not pay interest on borrowings it does not have
-        # -- and it ran unchecked through 47 of 170 companies, every one
-        # of which was valued as though unlevered. The proxy above should
-        # now prevent it, so reaching here means even the non-current
-        # liability subtotal was missing.
+        # a company does not pay interest on borrowings it does not have --
+        # and left alone it values the company as though unlevered. The
+        # debt proxy prevents most cases, so reaching here means even the
+        # non-current liability subtotal was missing.
         if debt <= 0 and interest is not None and (interest.value or 0) > 0:
             cy.blocked.append(
                 f"pays {interest.value:,.0f} of interest with no debt "
@@ -917,15 +908,19 @@ def stratified_sample(rows: list[dict], n: int, seed: int = 0) -> list[dict]:
 
 def run(args: argparse.Namespace) -> int:
     if args.reset and args.db.exists():
-        args.db.unlink()
-        print(f"deleted {args.db}\n")
+        # Extractions only. Listings, prices, hand-entered share counts and
+        # the EPS cross-checks live in the same file and are not rebuilt by
+        # this script, so deleting the whole database would lose them.
+        with Cache(args.db) as db:
+            removed = db.clear_extractions()
+        print(f"cleared {removed:,} extracted company-years from {args.db}\n")
 
     universe = read_universe(args.csv)
 
     if not args.no_exclude:
         universe, dropped = apply_exclusions(universe)
         if dropped:
-            print(f"Section 3.2 name prefilter dropped {len(dropped):,} of "
+            print(f"Name prefilter dropped {len(dropped):,} of "
                   f"{len(dropped) + len(universe):,} entities:")
             for r in dropped[:15]:
                 print(f"    {r['country']}  {r['name'][:56]}")
@@ -986,22 +981,12 @@ def run(args: argparse.Namespace) -> int:
                 )
                 interest = cy.facts.get("interest_expense")
                 debt = sum(
-                    (cy.facts[k].value or 0.0)
-                    for k in ("short_term_debt", "long_term_debt")
-                    if cy.facts.get(k) is not None
-                )
-                if interest is not None \
-                        and interest.derivation == "assumed_zero" and debt > 0:
-                    counts["interest_zero_despite_debt"] += 1
-
-                debt = sum(
                     cy.facts[k].value or 0.0
                     for k in ("short_term_debt", "long_term_debt")
                 )
-                interest = cy.facts.get("interest_expense")
                 if debt > 0 and interest is not None \
                         and interest.derivation == "assumed_zero":
-                    counts["debt_without_interest"] += 1
+                    counts["interest_zero_despite_debt"] += 1
 
                 pending.append((year, cy))
 
@@ -1056,12 +1041,6 @@ def run(args: argparse.Namespace) -> int:
             print("which rates them AAA and applies the cheapest spread.")
             print("These are not safe to value until the field resolves.")
 
-        if counts["debt_without_interest"]:
-            print(f"\nWARNING: {counts['debt_without_interest']:,} company-years "
-                  "carry debt but no interest expense.\nD39 divides EBIT by "
-                  "interest, so these resolve to AAA and get the narrowest\n"
-                  "spread on the ladder. Understates WACC, overstates value.")
-
         print("\nHigh 'unresolved' counts point at fields needing more")
         print("taxonomy element candidates in fields.py. High 'assumed 0'")
         print("on a field that should rarely be zero is the same signal.")
@@ -1074,7 +1053,7 @@ def parse_args(argv=None) -> argparse.Namespace:
         description="Extract the 20 model fields from ESEF filings.",
         parents=[config.common_args(cache_dir=True)])
     p.add_argument("--csv", type=Path, default=None,
-                   help="Coverage CSV (default: newest in ./out)")
+                   help="Coverage CSV (default: newest in the project's out/)")
     p.add_argument("--limit", type=int, default=None,
                    help="Process the first N entities in CSV order")
     p.add_argument("--sample", type=int, default=None,
@@ -1087,11 +1066,13 @@ def parse_args(argv=None) -> argparse.Namespace:
                         "assumed zero despite the company carrying debt. "
                         "They will be rated AAA. Off by default.")
     p.add_argument("--reset", action="store_true",
-                   help="Delete the cache database first. Use after an "
+                   help="Clear every extracted company-year first (listings, "
+                        "prices and share counts are kept). Use after an "
                         "extractor change, so the failure report counts "
                         "only the current run.")
     p.add_argument("--no-exclude", action="store_true",
-                   help="Skip the Section 3.2 name prefilter")
+                   help="Skip the name prefilter for banks, insurers and "
+                        "real estate")
     p.add_argument("--refresh", action="store_true",
                    help="Re-extract even if already cached")
     p.add_argument("--ebit-fallback", action="store_true",
@@ -1100,9 +1081,12 @@ def parse_args(argv=None) -> argparse.Namespace:
     args = p.parse_args(argv)
 
     if args.csv is None:
-        found = sorted(Path("./out").glob("esef_coverage_*.csv"))
+        # Where esef_coverage.py writes it: anchored to the project, not the
+        # working directory.
+        out_dir = config.ROOT / "out"
+        found = sorted(out_dir.glob("esef_coverage_*.csv"))
         if not found:
-            p.error("No coverage CSV in ./out -- run esef_coverage.py first")
+            p.error(f"No coverage CSV in {out_dir} -- run esef_coverage.py first")
         args.csv = found[-1]
     if not args.csv.exists():
         p.error(f"{args.csv} not found")

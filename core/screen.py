@@ -40,7 +40,7 @@ from pathlib import Path
 import config
 from cache import Cache
 
-YEARS = [2021, 2022, 2023, 2024, 2025]
+YEARS = config.FISCAL_YEARS
 
 SCHEDULE = """
 HOW OFTEN TO RUN WHAT
@@ -56,8 +56,9 @@ HOW OFTEN TO RUN WHAT
   Every February       the credit tables and industry parameters, after
                        Damodaran republishes in January
                          python core/fetch_parameters.py --inspect --industries
-                       Update refdata_tables.json by hand from the same
-                       publication. D122 warns once the table passes 14
+                         python core/fetch_ratings.py --apply
+                       The second refreshes refdata_tables.json and stamps
+                       its vintage. D122 warns once the table passes 14
                        months, so the workbook will remind you.
 
   Every year, after    the financial statements

@@ -19,6 +19,8 @@ import logging
 from datetime import date
 from pathlib import Path
 
+from typing import Callable, Iterator
+
 from cache import Cache
 from portfolio import Portfolio, mark, sync
 
@@ -34,6 +36,33 @@ def latest_run(out_dir: Path) -> Path | None:
     return runs[-1] if runs else None
 
 
+def iter_triggers(doc: dict, lei_of_ticker: Callable[[str], str | None]
+                  ) -> Iterator[tuple[str | None, str, dict]]:
+    """
+    (lei, ticker, entry) for every company in a run file's "triggers" block.
+
+    Current run files key the block by LEI and carry the ticker; older ones
+    are keyed by ticker alone, so the LEI is looked up with `lei_of_ticker`
+    (None when it cannot be found).
+    """
+    for key, entry in (doc.get("triggers") or {}).items():
+        if entry.get("lei"):
+            yield entry["lei"], entry.get("ticker") or key, entry
+        else:
+            yield lei_of_ticker(key), key, entry
+
+
+def leis_by_ticker(db: Cache, years: list[int]) -> dict[str, str]:
+    """ticker -> lei for every complete company with a primary listing."""
+    out: dict[str, str] = {}
+    for lei in db.complete_entities(years):
+        listing = db.primary_listing(lei)
+        ticker = listing and listing.get("ticker")
+        if ticker:
+            out[ticker] = lei
+    return out
+
+
 class RunFromJson:
     """
     A stand-in RunSummary rebuilt from run_DATE.json.
@@ -47,12 +76,11 @@ class RunFromJson:
     def __init__(self, doc: dict, db: Cache, years: list[int]):
         self.valuation_date = doc.get("valuation_date") or date.today().isoformat()
         queue = set(doc.get("research_queue") or [])
-        triggers = doc.get("triggers") or {}
+        by_ticker = leis_by_ticker(db, years)
         self.companies = []
 
         fy0 = max(years)
-        for ticker, t in triggers.items():
-            lei = self._lei_for(db, ticker, years)
+        for lei, ticker, t in iter_triggers(doc, by_ticker.get):
             if not lei:
                 continue
             cy = db.get(lei, fy0)
@@ -71,7 +99,10 @@ class RunFromJson:
                 name=(cy.name if cy else ticker) or ticker,
                 exchange=listing.get("exchange") or "",
                 current_price=price, value_per_share=value, upside=upside,
-                verdict=verdict, research_flag=ticker in queue,
+                verdict=verdict,
+                # Recorded per company in current run files; older ones only
+                # list the queue by ticker.
+                research_flag=t.get("research_flag", ticker in queue),
                 is_void=False))
 
     @staticmethod
@@ -86,14 +117,6 @@ class RunFromJson:
         if upside < -0.25:
             return "OVERVALUED - screen out"
         return "FAIRLY VALUED - no action"
-
-    @staticmethod
-    def _lei_for(db: Cache, ticker: str, years: list[int]) -> str | None:
-        for lei in db.complete_entities(years):
-            listing = db.primary_listing(lei)
-            if listing and listing.get("ticker") == ticker:
-                return lei
-        return None
 
 
 class _Company:

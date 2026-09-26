@@ -66,18 +66,13 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 
 from cache import Cache
-from esef_extract import USER_AGENT
 
 import config
+from config import USER_AGENT
 
-# Free tier is 8 requests/minute. 7.6s between calls leaves headroom for
-# clock drift without wasting the day's 800-request budget.
-
-# OpenFIGI hands us Bloomberg exchange codes; MICs are kept for
-# reporting and for any future source that speaks them.
 YAHOO_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
 
-# Bloomberg exchange code -> Yahoo suffix.
+# Bloomberg exchange code (what OpenFIGI hands us) -> Yahoo suffix.
 YAHOO_SUFFIX = {
     "AV": ".VI", "BB": ".BR", "ET": ".TL", "FH": ".HE", "FP": ".PA",
     "GA": ".AT", "GR": ".F", "GY": ".DE", "ID": ".IR", "IM": ".MI",
@@ -85,6 +80,7 @@ YAHOO_SUFFIX = {
     "SQ": ".MC", "LX": ".LU", "SV": ".LJ", "CZ": ".ZA",
 }
 
+# Bloomberg exchange code -> MIC, kept for reporting.
 BLOOMBERG_TO_MIC = {
     "AV": "XWBO",   # Vienna
     "BB": "XBRU",   # Euronext Brussels
@@ -111,14 +107,6 @@ BLOOMBERG_TO_MIC = {
                     # silently, with no error anywhere.
     "SV": "XLJU",   # Ljubljana
 }
-
-
-def http_json(url: str, params: dict, timeout: int = 30) -> dict:
-    query = urllib.parse.urlencode(params)
-    req = urllib.request.Request(f"{url}?{query}",
-                                 headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return json.loads(resp.read().decode("utf-8"))
 
 
 def fetch_yahoo(symbol: str, exchange: str | None) -> tuple[dict, str]:
@@ -215,8 +203,8 @@ def fetch_csv_prices(path: Path) -> dict[str, dict]:
         if "currency" not in (reader.fieldnames or []):
             # Do NOT default to EUR. The EUR gate below is the only thing
             # standing between a GBX-quoted London line and Inputs!B14, and
-            # a defaulted currency walks straight through it. Section 11:
-            # never invent or substitute financial data.
+            # a defaulted currency walks straight through it. Never invent
+            # or substitute financial data.
             raise SystemExit(
                 f"{path} has no 'currency' column. Add one -- the price is "
                 f"rejected unless it is explicitly EUR, and assuming EUR is "
@@ -403,7 +391,7 @@ def main(on_progress=None) -> int:
         print("PRICE FETCH")
         print("=" * 66)
         for key in ("ok", "cached", "fetch_failed", "wrong_currency",
-                    "zero_price", "stale", "no_mic", "no_primary_listing"):
+                    "zero_price", "stale", "no_primary_listing"):
             if counts[key]:
                 print(f"  {key:<22}{counts[key]:>6,}")
 

@@ -9,8 +9,9 @@ wrong beta, the wrong WACC and a wrong valuation -- and NOTHING in the
 workbook can see it. There is no diagnostic for "wrong industry".
 
 No free source carries a usable classification: GLEIF gives a legal name,
-OpenFIGI a security type, ESEF neither. Wikidata covers part of the
-universe (industry_probe.py); the rest is decided here.
+OpenFIGI a security type, ESEF neither. So it is decided here, by a
+language model (Gemini, or any LLM via copy and paste) choosing from
+Damodaran's own industry list.
 
 COMMANDS
 --------
@@ -109,7 +110,7 @@ def audit_section_32(db, params, years: list[int], quiet: bool = False):
                      "name": (cy.name if cy else lei) or lei,
                      "industry": industry})
     if hits and not quiet:
-        print(f"\n  SECTION 3.2 REVIEW ({len(hits)}) -- these are mapped to a "
+        print(f"\n  EXCLUDED-TYPE REVIEW ({len(hits)}) -- these are mapped to a "
               "business type\n  the model is not valid for:")
         for h in sorted(hits, key=lambda h: h["industry"]):
             print(f"    {h['ticker']:<10}{h['name'][:32]:<34}{h['industry']}")
@@ -392,7 +393,7 @@ def main() -> int:
             print()
             return do_exclude(db, params, args.params,
                               [h["lei"] for h in hits], args.years,
-                              "Section 3.2 business type; excluded in bulk")
+                              "Excluded business type; excluded in bulk")
 
         if args.include:
             lei = find_lei(db, args.include, args.years)
@@ -415,7 +416,7 @@ def main() -> int:
                 print(f"No company with ticker or LEI '{args.exclude}'.")
                 return 1
             return do_exclude(db, params, args.params, [lei], args.years,
-                              "Section 3.2 business type; excluded by hand")
+                              "Excluded business type; excluded by hand")
 
     return 0
 

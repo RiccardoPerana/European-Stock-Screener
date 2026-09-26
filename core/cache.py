@@ -17,9 +17,9 @@ by company precisely because coverage arrives one year at a time.
 
 WHY A LONG FACT TABLE
 ---------------------
-Section 11 of the brief requires, for every value written: source, source
-field, fiscal period, retrieval timestamp, units, reported-vs-calculated
-flag, transformations and validation status. Twenty wide columns cannot
+Every value written needs its provenance: source, source field, fiscal
+period, retrieval timestamp, units, reported-vs-calculated flag,
+transformations and validation status. Twenty wide columns cannot
 carry that. One row per (company, year, field) can, and it makes the
 question that actually matters -- "which fields fail most often, and where"
 -- a one-line query instead of a data-munging exercise.
@@ -54,15 +54,10 @@ from fields import (
 
 SCHEMA_VERSION = 3
 
-# Version each table SEPARATELY.
-#
-# The first cut kept one global version and dropped every derived table
-# whenever it changed. Adding the `price` table then bumped that global
-# number, which silently destroyed 158 resolved listings that had taken a
-# rate-limited half-hour of OpenFIGI calls to build. Adding a table must
-# not disturb the tables next to it.
-#
-# A table is now rebuilt only when ITS OWN schema changed.
+# Version each table SEPARATELY, so a table is rebuilt only when ITS OWN
+# schema changed. Adding or changing one table must not disturb the tables
+# next to it -- a rebuilt listing table costs a rate-limited half-hour of
+# OpenFIGI calls.
 TABLE_VERSIONS = {
     "company_year":   1,
     "fact":           2,   # sign_flipped added
@@ -416,6 +411,20 @@ class Cache:
 
     def close(self) -> None:
         self._conn.close()
+
+    def clear_extractions(self) -> int:
+        """
+        Delete every extracted company-year and its facts; return how many.
+
+        Everything else in the file -- listings, prices, share counts and the
+        EPS cross-checks -- is left alone: those come from other stages, and
+        share counts can be typed in by hand.
+        """
+        with self._tx() as conn:
+            n = conn.execute("SELECT COUNT(*) FROM company_year").fetchone()[0]
+            conn.execute("DELETE FROM fact")
+            conn.execute("DELETE FROM company_year")
+        return n
 
     @contextmanager
     def _tx(self) -> Iterator[sqlite3.Connection]:

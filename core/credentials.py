@@ -80,10 +80,11 @@ def _keyring():
         raise KeyringUnavailable("keyring is not installed") from e
     try:
         backend = keyring.get_keyring()
-        # The null backend reports success and stores nothing, which is far
-        # worse than failing: the user would save a key, see no error, and
-        # find it gone next launch.
-        if "fail" in type(backend).__module__.lower():
+        # "fail" is what keyring falls back to when no store exists. "null"
+        # reports success and stores nothing, which is far worse than
+        # failing: the user would save a key, see no error, and find it gone
+        # next launch. Neither is a usable store.
+        if type(backend).__module__.lower().rsplit(".", 1)[-1] in ("fail", "null"):
             raise KeyringUnavailable("no usable credential store on this system")
     except NoKeyringError as e:
         raise KeyringUnavailable(str(e)) from e
@@ -189,10 +190,9 @@ def is_set(provider: str) -> bool:
     """
     Whether a key can actually be resolved.
 
-    Do NOT infer this by comparing describe() to a string. describe()
-    returns a longer sentence when there is no credential store, so the
-    comparison silently reported every key as present on a machine without
-    one -- exactly backwards.
+    Do NOT infer this by comparing describe() to a string: describe()
+    returns a longer sentence when there is no credential store, so such a
+    comparison would report every key as present on a machine without one.
     """
     return bool(resolve(provider, allow_prompt=False))
 

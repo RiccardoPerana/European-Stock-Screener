@@ -18,7 +18,9 @@ disk -- which is exactly how this will be opened. Embedding removes the
 failure mode instead of documenting it.
 
 Nothing is loaded from a CDN either: no webfonts, no chart library. The
-page opens on a plane.
+results and portfolio pages open on a plane. (The public Methodology page
+is the exception: it loads SheetJS, pinned by an integrity hash, to render
+the template workbook.)
 
 WHAT IT SHOWS
 -------------
@@ -651,7 +653,7 @@ else " and cleared every check"}.</p>
   <div><span class="lbl">Passed every validity check
        <small>the rest are listed below</small></span>
        <span class="n">{len(cs) - len(void)}</span></div>
-  <div><span class="lbl">Priced below fair value by more than 25%</span>
+  <div><span class="lbl">Fair value more than 25% above the price</span>
        <span class="n">{len(under)}</span></div>
   <div><span class="lbl">And carried no warning</span>
        <span class="n">{len(queue)}</span></div>
@@ -1144,11 +1146,15 @@ and not Yahoo Finance data. Pick a sheet to view its computed values.</p>
 (.xlsx)</a> to open it in Excel or LibreOffice directly.</p>
 
 <h2>Why five years, why this bar</h2>
-<p class="note">Section from README, "Valuation and signal logic": fair
-value is intrinsic value ± 25%; a company is flagged undervalued when
-the market price sits more than 25% below that midpoint, and the
-research queue on the Results page is exactly that filter applied
-across the whole universe — no company is added or removed by hand.</p>
+<p class="note">Five years, because the model normalises margins and
+growth over a five-year median, and machine-readable (ESEF) annual reports
+only exist from 2020. The bar: the workbook calls a company fairly valued
+while its upside (fair value ÷ price − 1) sits within ±25%, and
+undervalued once fair value is more than 25% above the price — that is,
+the price is more than 20% below fair value. The research queue on the
+Results page is exactly that verdict, minus any company carrying a
+warning, applied across the whole universe — no company is added or
+removed by hand.</p>
 
 <footer>
   <p class="full">This page explains the mechanics of the model shown
@@ -1156,7 +1162,9 @@ across the whole universe — no company is added or removed by hand.</p>
 </footer>
 
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
+        integrity="sha512-r22gChDnGvBylk90+2e/ycr3RVrDi8DIOkIGNhJlKfuyQM4tIRAI062MaV8sfjQKYVGjOBaZBOA87z+IhZE9DA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>{THEME_JS}
 {SHEET_VIEWER_JS}</script>
 </body></html>"""

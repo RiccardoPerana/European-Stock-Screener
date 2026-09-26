@@ -3,16 +3,12 @@
 Pipeline state
 ==============
 
-Answers the question the dashboard could not: where do the companies come
-from, and when does each part need refreshing?
-
-The first dashboard offered two buttons, prices and scan, and reported
-that some number of companies were ready to value. It never said how they
-got there. Eight stages run before a valuation is possible, and each one
+Where do the companies come from, and when does each part need
+refreshing? Eight stages run before a valuation is possible, and each one
 goes stale on its own schedule -- statements once a year, prices daily,
-Damodaran's industry data annually. A control panel that hides six of the
-eight cannot tell you why the count is 170 rather than 400, and cannot
-warn you that the credit spreads are fourteen months old.
+Damodaran's industry data annually. Showing all of them is what explains
+why the count of companies ready to value is 170 rather than 400, and what
+warns you that the credit spreads are fourteen months old.
 
 FRESHNESS
 ---------
@@ -24,8 +20,9 @@ The schedule is not arbitrary:
   prices       daily to quarterly, depending on whether you are watching
                positions between screens.
   parameters   Damodaran republishes the industry datasets each January.
-  tables       the credit spread ladder. Valuation!D122 fails the whole
-               workbook once it passes fourteen months, so this is a hard
+  tables       the credit spread ladder. Once it passes fourteen months,
+               Valuation!D122 puts a WARNING on every workbook, which holds
+               every company back from the research queue -- a hard
                deadline rather than a suggestion.
   screen       quarterly, or whenever anything above it changed.
 
@@ -46,8 +43,8 @@ import config
 # How many days before a stage is considered old. None means it never
 # expires on its own; it only goes stale when something upstream changes.
 SCHEDULE = {
-    # Coverage at 180: the brief's "stale scan alert" fires once the
-    # market coverage scan is over half a year old.
+    # Coverage at 180: the stale-scan alert fires once the market coverage
+    # scan is over half a year old.
     "coverage": 180, "extract": 365, "identity": 365, "prices": 7,
     "shares": 365, "parameters": 365, "tables": 400, "industries": None,
     "screen": 92,
@@ -74,12 +71,9 @@ def _count(db: Path, sql: str) -> int:
     if not db.exists():
         return 0
     try:
-        # `with sqlite3.connect(...) as conn` only manages the transaction
-        # (commit/rollback) -- it does NOT close the connection. Called
-        # this often (every Dashboard/Settings render does ~7 of these),
-        # that leaked a fresh file handle per call, relying entirely on
-        # GC to close it -- which on Windows was enough to hold the
-        # database file locked against being moved or deleted.
+        # closing(), not `with sqlite3.connect(...)`: the latter only
+        # manages the transaction and leaves the connection open, and on
+        # Windows an open handle locks the database file.
         with closing(sqlite3.connect(db)) as conn:
             return conn.execute(sql).fetchone()[0] or 0
     except sqlite3.Error:
@@ -101,12 +95,10 @@ def _latest_date(db: Path, sql: str) -> str | None:
 
     extracted_at/resolved_at/entered_at are full `datetime.isoformat()`
     timestamps; every other stage's `date` (as_of, a vintage, a run
-    folder's stamp) is a plain YYYY-MM-DD. Comparing a timestamp against a
-    same-day date string lexicographically makes the timestamp look
-    "later" even when both happened today (the longer string, sharing the
-    date prefix, sorts after it) -- which made a dependent stage look
-    stale forever. Truncating here keeps every stage's `date` on the same
-    day-only footing before any of that comparison happens.
+    folder's stamp) is a plain YYYY-MM-DD. Compared as strings, a timestamp
+    sorts after a same-day date (it is longer and shares the prefix), which
+    would make a dependent stage look stale forever. Truncating keeps every
+    stage's `date` on the same day-only footing.
     """
     value = _latest(db, sql)
     return value[:10] if value else None
@@ -132,9 +124,13 @@ def stages(db: Path = None, params_path: Path = None,
             params = {}
 
     cached = len(list(cache_dir.glob("*.json"))) if cache_dir.exists() else 0
+    # The same rule as Cache.complete_entities(): a usable record for every
+    # year. Failed rows (e.g. financials, or years with no filing) do not
+    # count.
     entities = _count(db, f"""
         SELECT COUNT(*) FROM (SELECT lei FROM company_year
-        WHERE fiscal_year IN ({','.join(map(str, years))})
+        WHERE status = 'complete'
+          AND fiscal_year IN ({','.join(map(str, years))})
         GROUP BY lei HAVING COUNT(DISTINCT fiscal_year) = {len(years)})""")
     listings = _count(db, "SELECT COUNT(DISTINCT lei) FROM listing "
                           "WHERE is_primary = 1")
@@ -142,19 +138,13 @@ def stages(db: Path = None, params_path: Path = None,
     shares = _count(db, "SELECT COUNT(DISTINCT lei) FROM share_count")
     price_date = _latest(db, "SELECT MAX(as_of) FROM price")
     # When the price job itself last ran, as opposed to what trading day
-    # its quotes are dated. The two diverge on a weekend or holiday: a fetch
-    # run today correctly stores Friday's close as `as_of`, but "identity
-    # was resolved today, which is after Friday" then read as "prices needs
-    # re-running" every single time -- a false positive that never clears,
-    # since as_of can't catch up until markets reopen. See price_ran_date's
-    # use below, in the parent-freshness check only; `date`/as_of still
-    # drives the display and the 7-day SCHEDULE staleness check, both of
-    # which are correctly about the quote's own age, not the job's.
+    # its quotes are dated. The two diverge on a weekend or holiday -- a
+    # fetch today stores Friday's close -- so the parent-freshness check
+    # below compares on this; `date` (as_of) still drives the display and
+    # the 7-day staleness check, which are about the quote's own age.
     price_ran_date = _latest_date(db, "SELECT MAX(fetched_at) FROM price")
-    # Each stage's own last-write time, not the shared db file's mtime --
-    # that mtime moves on every write to ANY table (prices, shares, an
-    # extraction pass), so a stage that touches the same file falsely
-    # looked "freshly run" whenever a different stage ran. See _latest_date.
+    # Each stage's own last-write time, not the shared db file's mtime,
+    # which moves on every write to ANY table. See _latest_date.
     extract_date = _latest_date(db, "SELECT MAX(extracted_at) FROM company_year")
     identity_date = _latest_date(db, "SELECT MAX(resolved_at) FROM listing")
     shares_date = _latest_date(db, "SELECT MAX(entered_at) FROM share_count")
@@ -193,15 +183,12 @@ def stages(db: Path = None, params_path: Path = None,
     excluded = {k for k in (params.get("excluded_companies") or {})
                 if not k.startswith("_")}
     # Companies that actually need an industry: in the universe, listed,
-    # not excluded. The 8 excluded names have no company_industry entry by
-    # design, so comparing mapped (150) against every listing (158) would
-    # show a phantom "8 to do".
+    # not excluded. Excluded names have no company_industry entry by
+    # design, so counting them would show phantom work to do.
     classifiable = max(listings - len(excluded), 0)
 
-    # Two independent try blocks, not one: with a shared block an exception
-    # from either would wipe out BOTH counts, so a failure in the mapping
-    # count (need_mapping) would discard an already-correct `ready` and
-    # make the Dashboard falsely report nothing screenable.
+    # Two independent try blocks, not one, so a failure in the mapping
+    # count cannot discard an already-correct `ready`.
     ready = 0
     if db.exists() and params:
         try:
@@ -266,8 +253,8 @@ def stages(db: Path = None, params_path: Path = None,
              industries_date=industries_date, job="parameters"),
         dict(key="tables", title="Credit spread ladder",
              blurb="Turns interest cover into a borrowing cost.<br>"
-                   "The workbook refuses to value anything once it passes "
-                   "fourteen months.",
+                   "Past fourteen months the workbook warns on every "
+                   "company, which empties the research queue.",
              count=0, unit=f"vintage {vintage}" if vintage else "not loaded",
              done=bool(vintage), date=vintage, job=""),
         dict(key="industries", title="Assign each company an industry",
@@ -317,20 +304,21 @@ def stages(db: Path = None, params_path: Path = None,
             s["health"] = "stale"
             s["message"] = f"‘{parent['title']}’ has been updated since"
 
-    # The credit ladder is the one hard deadline: D122 fails the workbook.
+    # The credit ladder is the one hard deadline: past it, D122 warns on
+    # every workbook and no company can reach the research queue.
     ladder = by_key["tables"]
     if ladder["age_days"] is not None and ladder["age_days"] > 425:
         ladder["health"] = "blocking"
         ladder["message"] = ("older than fourteen months — every valuation "
-                             "will fail its own checks until this is "
-                             "refreshed")
+                             "carries a warning, so nothing can reach the "
+                             "research queue until this is refreshed")
     return raw
 
 
 def _calendar_reminders(by_key: dict, today: date | None = None) -> list[dict]:
     """
-    The date-driven maintenance notices from the brief: the annual
-    Damodaran refresh and the quarterly report-cycle scan. Unlike the
+    The date-driven maintenance notices: the annual Damodaran refresh and
+    the quarterly report-cycle scan. Unlike the
     age-based staleness above, these are triggered by the calendar.
     """
     today = today or date.today()

@@ -28,15 +28,22 @@ is different --
 
 A `.xls` parse failing is loud. An HTML table quietly handing back the
 wrong four columns is not -- and this number gets written straight into
-every company's cost of debt. So `fetch()` only ever returns what it
-found for a person to look at; nothing here touches refdata_tables.json
-except `apply()`, which is never called except from the GUI's confirm
-panel, after `diff()` has been shown and agreed to.
+every company's cost of debt. So `fetch()` only returns what it found, and
+refuses a ladder that does not parse to exactly ROWS_EXPECTED rungs;
+nothing here touches refdata_tables.json except `apply()`. The GUI calls
+it from a confirm panel after showing `diff()`; the unattended quarterly
+CI screen (scripts/ci_screen.py) applies it directly and logs the diff.
 
-Run standalone for a look from the command line:
+Applying an UNCHANGED table is still meaningful: it re-stamps the vintage,
+recording that the ladder was checked against the live site today. Without
+that, a year in which Damodaran's numbers happen not to move would age the
+vintage past Valuation!D122's 14-month limit.
+
+Run standalone from the command line:
 
     python core/fetch_ratings.py             fetch and show the diff
-    python core/fetch_ratings.py --apply      fetch, show the diff, and write it
+    python core/fetch_ratings.py --apply     fetch, show the diff, and write
+                                             it (re-stamping the vintage)
 """
 
 from __future__ import annotations
@@ -243,20 +250,20 @@ def main() -> int:
         return 1
 
     changes = diff(current, fetched)
-    if not changes:
+    if changes:
+        print(f"{len(changes)} row(s) differ from {args.tables}:\n")
+        for c in changes:
+            print(f"  {c['text']}")
+    else:
         print("No changes -- refdata_tables.json already matches "
-             "Damodaran's site.")
-        return 0
-
-    print(f"{len(changes)} row(s) differ from {args.tables}:\n")
-    for c in changes:
-        print(f"  {c['text']}")
+              "Damodaran's site.")
 
     if args.apply:
-        apply(args.tables, fetched)
-        print(f"\nWrote {args.tables}.")
+        result = apply(args.tables, fetched)
+        print(f"\nWrote {args.tables} (vintage {result['vintage']}).")
     else:
-        print("\nRe-run with --apply to write these.")
+        print("\nRe-run with --apply to write "
+              + ("these." if changes else "it and re-stamp the vintage."))
     return 0
 
 

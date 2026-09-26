@@ -4,28 +4,22 @@ Shared configuration and CLI plumbing.
 
 WHY THIS EXISTS
 ---------------
-The fiscal-year window [2021..2025] was written out longhand in fifteen
-files, and the default paths to the database, the parameter store and the
-template in nine. Rolling the screen forward to FY2026 therefore meant
-fifteen correct edits, and the failure mode of getting it wrong is not a
-crash: it is one script reading 2021-2025 while another reads 2022-2026,
-which produces a valuation quietly built from mismatched years.
-
-Everything that more than one script needs to agree on lives here. Scripts
-now inherit their common flags from `common_args()` instead of redeclaring
-them, so a new shared option is added in one place.
+Everything that more than one script needs to agree on lives here: the
+fiscal-year window, the default paths and the shared CLI flags. The failure
+mode of a disagreement is not a crash: it is one script reading 2021-2025
+while another reads 2022-2026, which produces a valuation quietly built from
+mismatched years. Scripts inherit their common flags from `common_args()`,
+so a new shared option is added in one place.
 
 THE FISCAL WINDOW
 -----------------
 `FISCAL_YEARS` is resolved in this order, first hit wins:
 
-    1. --years on the command line          (one run, explicit)
-    2. screen_config.json, "fiscal_years"   (the project's own setting)
-    3. the five years ending at DEFAULT_FY0 (the fallback below)
-
-Rolling forward is now a one-line edit to screen_config.json, and the run
-summary can print which window it used so a mismatch is visible rather
-than inferred.
+    1. --years on the command line                  (one run, explicit)
+    2. screen_config.json, "fiscal_years"           (an explicit pin)
+    3. screen_config.json, "latest_fiscal_year"     (written when the
+                                                     window rolls forward)
+    4. the five years ending at DEFAULT_FY0         (the fallback below)
 """
 
 from __future__ import annotations
@@ -44,7 +38,7 @@ FROZEN = bool(getattr(sys, "frozen", False))
 # Fiscal window
 # --------------------------------------------------------------------------
 
-# Section 3.1: exactly five consecutive years. D26 computes a four-year
+# Exactly five consecutive years. D26 computes a four-year
 # revenue CAGR from FY-4 and the normalisation medians at D7/D10 are
 # five-point, so this is a hard requirement, not a preference.
 YEAR_COUNT = 5
@@ -138,9 +132,8 @@ ESEF_CACHE_DIR = ROOT / ".esef_cache"
 # HTTP identity
 # --------------------------------------------------------------------------
 
-# One identity for every outbound request. Two different user agents were
-# in use, which makes the tool look like two clients to a rate limiter and
-# makes it impossible for a data provider to attribute traffic correctly.
+# One identity for every outbound request, so a rate limiter sees one
+# client and a data provider can attribute the traffic.
 USER_AGENT = "esef-screening-tool/0.7 (research; non-commercial)"
 
 # --------------------------------------------------------------------------

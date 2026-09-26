@@ -60,6 +60,29 @@ COLUMNS = ["lei", "name", "ticker", "exchange", "shares", "source",
 CAP_REV_MIN, CAP_REV_MAX = 0.05, 30.0
 
 
+def _derived_count(db: Cache, lei: str, fy0: int, px: float | None,
+                   revenue: float | None) -> tuple[float | None, float | None]:
+    """
+    (derived, usable): the share count the FY0 accounts imply, and the same
+    figure only if it survives the D114 band check (else None).
+
+    Trust the derived figure only if it is positive AND lands inside the
+    band. A count that fails its own sanity check is worse than a blank,
+    because a blank gets filled and a wrong number does not.
+    """
+    est = db.share_estimate(lei, fy0) or {}
+    derived = est.get("wavg_diluted") or est.get("wavg_basic")
+    if derived and derived > 0 and px and revenue \
+            and CAP_REV_MIN <= px * derived / revenue <= CAP_REV_MAX:
+        return derived, derived
+    return derived, None
+
+
+def _same_count(a: float, b: float) -> bool:
+    """Equal to the nearest whole share -- the worksheet stores integers."""
+    return round(a) == round(b)
+
+
 def gather(db: Cache, years: list[int]) -> list[dict]:
     fy0 = max(years)
     rows = []
@@ -68,22 +91,12 @@ def gather(db: Cache, years: list[int]) -> list[dict]:
         if not (listing and listing.get("ticker")):
             continue
         cy = db.get(lei, fy0)
-        est = db.share_estimate(lei, fy0) or {}
         price = db.latest_price(lei)
         existing = db.latest_share_count(lei)
 
-        derived = est.get("wavg_diluted") or est.get("wavg_basic")
         revenue = cy.facts["revenue"].value if cy else None
         px = price["price"] if price else None
-
-        # Trust the derived figure only if it is positive AND lands inside
-        # the band. A count that fails its own sanity check is worse than a
-        # blank, because a blank gets filled and a wrong number does not.
-        usable = None
-        if derived and derived > 0 and px and revenue:
-            ratio = px * derived / revenue
-            if CAP_REV_MIN <= ratio <= CAP_REV_MAX:
-                usable = derived
+        derived, usable = _derived_count(db, lei, fy0, px, revenue)
 
         rows.append({
             "lei": lei,
@@ -108,21 +121,33 @@ def seed_derived(db: Cache, years: list[int]) -> int:
     """
     Store the EPS-derived counts that pass their own cross-check.
 
-    `gather()` already computes which derived figures land inside the D114
-    cap/revenue band -- exactly the ones `--export` pre-fills and expects
-    the user to import unchanged. Doing that here means the share-count
-    stage reflects real coverage after one click instead of staying at
-    "never done" until someone hand-imports a worksheet. The rows it
-    cannot vouch for are left for the worksheet.
+    Stored where a company has no count yet, and refreshed where its current
+    count is itself EPS-derived and the latest accounts now imply a different
+    number -- after the fiscal window rolls forward, say. A count with any
+    other source (typed in from an annual report) is never overwritten.
+    The rows it cannot vouch for are left for the worksheet.
     """
+    fy0 = max(years)
     today = date.today().isoformat()
     stored = 0
-    for r in gather(db, years):
-        if (r["shares"] and r["source"] == "eps-derived"
-                and not db.latest_share_count(r["lei"])):
-            db.put_share_count(r["lei"], today, float(r["shares"]),
-                               "eps-derived", None)
-            stored += 1
+    for lei in db.complete_entities(years):
+        listing = db.primary_listing(lei)
+        if not (listing and listing.get("ticker")):
+            continue
+        existing = db.latest_share_count(lei)
+        if existing and existing["source"] != "eps-derived":
+            continue
+        cy = db.get(lei, fy0)
+        price = db.latest_price(lei)
+        _, usable = _derived_count(
+            db, lei, fy0, price["price"] if price else None,
+            cy.facts["revenue"].value if cy else None)
+        if usable is None:
+            continue
+        if existing and _same_count(existing["shares"], usable):
+            continue
+        db.put_share_count(lei, today, usable, "eps-derived", None)
+        stored += 1
     return stored
 
 
@@ -147,7 +172,7 @@ def do_export(path: Path, rows: list[dict]) -> None:
 def do_import(path: Path, db: Cache, years: list[int]) -> int:
     fy0 = max(years)
     today = date.today().isoformat()
-    ok = skipped = rejected = warned = 0
+    ok = skipped = unchanged = rejected = warned = 0
 
     with path.open(encoding="utf-8-sig") as fh:
         for row in csv.DictReader(fh):
@@ -167,6 +192,16 @@ def do_import(path: Path, db: Cache, years: list[int]) -> int:
                 print(f"  REJECT {row.get('name','')[:34]:<36}"
                       f"share count must be positive")
                 rejected += 1
+                continue
+
+            # The export pre-fills every row that already has a count, so a
+            # re-import mostly hands back what is stored. Storing it again
+            # would re-date an old count as entered today, hiding its age.
+            source = (row.get("source") or "manual").strip()
+            existing = db.latest_share_count(lei)
+            if existing and _same_count(existing["shares"], shares) \
+                    and existing["source"] == source:
+                unchanged += 1
                 continue
 
             cy = db.get(lei, fy0)
@@ -195,15 +230,15 @@ def do_import(path: Path, db: Cache, years: list[int]) -> int:
                           f"({gap:.0%} apart)")
                     warned += 1
 
-            db.put_share_count(lei, today, shares,
-                               (row.get("source") or "manual").strip(),
+            db.put_share_count(lei, today, shares, source,
                                (row.get("note") or "").strip() or None)
             ok += 1
 
-    print(f"\n  stored   {ok:,}")
-    print(f"  blank    {skipped:,}")
-    print(f"  rejected {rejected:,}")
-    print(f"  warned   {warned:,}")
+    print(f"\n  stored    {ok:,}")
+    print(f"  unchanged {unchanged:,}")
+    print(f"  blank     {skipped:,}")
+    print(f"  rejected  {rejected:,}")
+    print(f"  warned    {warned:,}")
     if warned:
         print("\n  A warning is not a rejection. The entered figure is kept,")
         print("  because a hand-checked number beats a derived one. But a")

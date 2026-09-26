@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import sys
 
-from config import strip_severity, utf8_stdout
+from config import strip_severity
 from pipeline import PROCESS_CHECKS, SIZE_BUCKETS, RunSummary
 
 BAR = "=" * 74
@@ -106,8 +106,8 @@ WHAT THE MODEL WILL NOT DO
   Expect the UNDERVALUED bucket to skew capital-intensive and low-multiple.
 
 FILES WRITTEN
-  TICKER_DATE.xlsx             the filled-in workbook, one per company
-  TICKER_DATE.provenance.json  where every number came from -- enough to
+  TICKER_EXCH_DATE.xlsx             the filled-in workbook, one per company
+  TICKER_EXCH_DATE.provenance.json  where every number came from -- enough to
                                defend or reproduce it a year from now
   results_DATE.xlsx            every company on one sheet, sortable
   run_DATE.json                counts, policy, trigger prices, the queue
@@ -138,8 +138,7 @@ def print_policy(summary_policy: dict) -> None:
 def print_run_banner(total: int) -> None:
     """
     Sits directly above the progress bar, so the count and the thing
-    counting are adjacent. Buried under the policy block it read as part
-    of the legend rather than as the start of the run.
+    counting are adjacent and it reads as the start of the run.
     """
     print(f"Screening {total} companies.")
 
@@ -363,9 +362,9 @@ def print_files(summary: RunSummary) -> None:
     if summary.results_path:
         print(f"  {summary.results_path}")
         print("     every company on one sheet, sortable")
-    print(f"  {summary.run_dir / 'TICKER_DATE.xlsx'}")
+    print(f"  {summary.run_dir / 'TICKER_EXCH_DATE.xlsx'}")
     print(f"     {n} completed workbooks, one per company")
-    print(f"  {summary.run_dir / 'TICKER_DATE.provenance.json'}")
+    print(f"  {summary.run_dir / 'TICKER_EXCH_DATE.provenance.json'}")
     print(f"     {n} sidecars: where each number came from")
     if summary.run_json_path:
         print(f"  {summary.run_json_path}")
@@ -383,8 +382,8 @@ def print_research_queue(summary: RunSummary) -> None:
     The last thing on screen, and only the list.
 
     The counts, the suppression breakdown and the policy warning are
-    accounting, and accounting belongs in RESULTS. What is left is the answer: which companies, and where to
-    find them. EXCH is included because a ticker without its exchange is
+    accounting, and accounting belongs in RESULTS. What is left is the
+    answer: which companies, and where to find them. EXCH is included because a ticker without its exchange is
     not enough to actually go and look one up.
     """
     queue = summary.research_queue
@@ -412,13 +411,10 @@ def print_research_queue(summary: RunSummary) -> None:
     print()
 
 
-def print_report(summary: RunSummary, show_all: bool = False,
-                 full_legend: bool = False) -> None:
+def print_report(summary: RunSummary, show_all: bool = False) -> None:
     """The whole report, in reading order. The queue is last."""
     print_findings(summary, show_all=show_all)
     print_why(summary)
     print_counts(summary)
     print_files(summary)
     print_research_queue(summary)
-    if full_legend:
-        print(FULL_LEGEND)

@@ -46,6 +46,7 @@ from datetime import date
 from cache import Cache
 from pipeline import UNDERVALUED_THRESHOLD
 from portfolio import VOID_PREFIX, Portfolio
+from track import iter_triggers, leis_by_ticker
 
 # Exit once upside falls to this. 0.0 = price reached fair value; -0.25
 # would hold until the price-implied verdict reads OVERVALUED.
@@ -67,17 +68,6 @@ def _fresh_quote(db: Cache, lei: str, today: date) -> dict | None:
     return q if age <= MAX_QUOTE_AGE_DAYS else None
 
 
-def tickers_to_leis(db: Cache, years: list[int]) -> dict[str, str]:
-    """ticker -> lei, one pass (as price_watch.check does)."""
-    out: dict[str, str] = {}
-    for lei in db.complete_entities(years):
-        listing = db.primary_listing(lei)
-        ticker = listing and listing.get("ticker")
-        if ticker:
-            out[ticker] = lei
-    return out
-
-
 def apply_prices(pf: Portfolio, run_doc: dict, db: Cache, years: list[int],
                  today: date | None = None) -> dict:
     """
@@ -86,8 +76,7 @@ def apply_prices(pf: Portfolio, run_doc: dict, db: Cache, years: list[int],
     "skipped_old_run": bool}.
     """
     today = today or date.today()
-    triggers = run_doc.get("triggers") or {}
-    by_ticker = tickers_to_leis(db, years)
+    by_ticker = leis_by_ticker(db, years)
     changes = {"entered": [], "exited": [], "skipped_old_run": False}
 
     # -- exits -------------------------------------------------------------
@@ -107,7 +96,7 @@ def apply_prices(pf: Portfolio, run_doc: dict, db: Cache, years: list[int],
             changes["exited"].append((row["ticker"], f"{upside:+.1%}"))
 
     # -- entries -----------------------------------------------------------
-    for ticker, t in triggers.items():
+    for lei, ticker, t in iter_triggers(run_doc, by_ticker.get):
         if "blocking_checks" not in t:
             # A run file written before the policy outcome was recorded:
             # no way to tell a clean company from a suppressed one, so
@@ -116,7 +105,6 @@ def apply_prices(pf: Portfolio, run_doc: dict, db: Cache, years: list[int],
             break
         if t.get("void") or t["blocking_checks"]:
             continue
-        lei = by_ticker.get(ticker)
         value = t.get("value_per_share")
         if not lei or not isinstance(value, (int, float)) or value <= 0:
             continue

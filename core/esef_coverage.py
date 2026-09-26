@@ -25,8 +25,8 @@ untagged line items. Treat the output as an upper bound.
 Two further reasons this is an upper bound:
 
   * Financials are not excluded. The archive carries no industry
-    classification, so banks and insurers are still in the count. They must
-    be removed later per Section 3.2 of the brief.
+    classification, so banks, insurers and property companies are still in
+    the count; the extractor and the industry mapping remove them later.
   * "Country" in the archive means the country where the filer has issued
     securities on EU regulated markets, not country of domicile. Domicile
     drives the country risk premium (Inputs!B53) and has to come from
@@ -111,9 +111,9 @@ class EntityCoverage:
     country: str
     years_present: set[int] = field(default_factory=set)
     # Month of each filing's reporting date, keyed by year. Used to detect
-    # non-calendar fiscal years, which Section 3.3 of the brief flags as an
-    # open problem: a company with a June year end cannot be lined up against
-    # December reporters without an explicit alignment rule.
+    # non-calendar fiscal years, an open problem: a company with a June year
+    # end cannot be lined up against December reporters without an explicit
+    # alignment rule.
     end_months: dict[int, int] = field(default_factory=dict)
     # Archive-reported validation errors, summed across the entity's filings.
     # A filing with errors is more likely to parse badly downstream.
@@ -381,7 +381,7 @@ def print_report(summary: dict, csv_path: Path, json_path: Path) -> None:
     print("-" * 62)
     print("REMINDER: this counts filings that EXIST. It does not check that")
     print("the 20 line items the model needs are tagged inside them, and it")
-    print("does not exclude banks, insurers or the other Section 3.2 types.")
+    print("does not exclude banks, insurers or property companies.")
     print("The real D111 pass rate will be lower than the figure above.")
     print("-" * 62)
     print(f"Per-entity detail : {csv_path}")

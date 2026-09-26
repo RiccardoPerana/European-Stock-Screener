@@ -3,10 +3,10 @@
 Parameter store  --  Inputs!B48:B60
 ===================================
 
-Loads parameters.json, fetches what can be fetched, and reports what is
-still missing. Nothing here is written by the pipeline: values are
-hand-maintained and version-controlled, so a valuation can always be traced
-to the exact parameter set that produced it.
+Loads parameters.json, fetches what can be fetched, writes it back, and
+reports what is still missing. Each value carries its source and as-of
+date, and every valuation's sidecar records a hash of the file, so a
+valuation can always be traced to the exact parameter set that produced it.
 
 WHAT IS AUTOMATED AND WHAT IS NOT
 ---------------------------------
@@ -14,11 +14,10 @@ B48, the risk-free rate, comes from the ECB Data Portal. Stable API, stable
 series key, fetched on every run.
 
 Everything else comes from Damodaran, published as Excel files whose sheet
-names and header rows move between annual editions. Writing a parser
-against a layout I have never seen would be guessing, and this project has
-already lost time to three confident guesses about external data. So
---inspect downloads the files and prints their structure; the parser gets
-written against what is actually there.
+names and header rows move between annual editions. So the parsers locate
+headers and columns by their content, never by position, and --inspect
+downloads the files and prints their structure for when a new edition
+changes shape.
 
 USAGE
 -----
@@ -31,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import importlib.util
 import io
 import json
 import sys
@@ -39,9 +39,8 @@ import urllib.request
 from datetime import date
 from pathlib import Path
 
-from esef_extract import USER_AGENT
-
 import config
+from config import USER_AGENT
 
 # ECB euro area AAA-rated central government bond, 10-year spot rate.
 ECB_SERIES = "B.U2.EUR.4F.G_N_A.SV_C_YM.SR_10Y"
@@ -51,11 +50,8 @@ ECB_URL = ("https://data-api.ecb.europa.eu/service/data/YC/" + ECB_SERIES +
 DAMODARAN = {
     "ctryprem.xlsx": "Country risk premiums and tax rates -> B49, B53, B54",
     "betaEurope.xls": "European industry unlevered betas -> B57",
-    # waccEurope's own FAQ lists beta, cost of equity, D/(D+E), cost of
-    # debt and cost of capital -- no sales-to-capital ratio. B58 lives in a
-    # different file, and these two are the candidates.
-    "capexEurope.xls": "Candidate for sales-to-capital -> B58",
-    "fundgrEurope.xls": "Candidate for sales-to-capital -> B58",
+    # waccEurope carries no sales-to-capital ratio; capexEurope does.
+    "capexEurope.xls": "European industry sales-to-capital -> B58",
     # margin.xls says "US companies" in its own header. Using it would have
     # scored European companies against American peer margins at D90.
     "marginEurope.xls": "European industry operating margins -> B59",
@@ -81,8 +77,8 @@ def fetch_ecb_riskfree() -> tuple[float | None, str | None, str]:
     row = rows[-1]
     try:
         # The ECB publishes this in PERCENT. The workbook stores fractions,
-        # and Section 6 names this exact conversion as the likeliest silent
-        # corruption in the pipeline, so it happens once, here, explicitly.
+        # and a missed conversion is the likeliest silent corruption in the
+        # pipeline, so it happens once, here, explicitly.
         percent = float(row["OBS_VALUE"])
         return percent / 100.0, row.get("TIME_PERIOD"), "ok"
     except (KeyError, ValueError) as e:
@@ -123,11 +119,10 @@ def _read_sheets(path: Path, max_rows: int = 24) -> dict[str, list[list]]:
 
 def inspect_damodaran(out_dir: Path, refresh: bool = False) -> None:
     """Download each file and print its structure. No parsing assumptions."""
-    try:
-        import openpyxl  # noqa: F401
-        import xlrd      # noqa: F401
-    except ImportError:
-        sys.exit("Readers missing. Run:  pip install openpyxl xlrd")
+    missing = [m for m in ("openpyxl", "xlrd")
+               if importlib.util.find_spec(m) is None]
+    if missing:
+        sys.exit(f"Readers missing. Run:  pip install {' '.join(missing)}")
 
     out_dir.mkdir(parents=True, exist_ok=True)
     for filename, purpose in DAMODARAN.items():
@@ -288,20 +283,19 @@ INDUSTRY_SPECS = {
         # relevers at GROSS debt, so the cash-corrected figure would
         # understate the cost of equity for all 158 companies at once --
         # invisible to every check in the workbook. The exclusions are the
-        # guard, and the test asserts the right column is chosen.
+        # guard; tests/test_fetch_parameters.py checks the right column wins.
         ("unlevered_beta", ("unlevered", "beta"), ("corrected", "cash")),
     ],
     "EVAEurope.xls": [
-        # Header sits at row 18, and the ROC column is past where the
-        # inspector was printing. "ROC" alone is the return on capital;
+        # The header sits well down the sheet. "ROC" alone is the return on
+        # capital;
         # "(ROC - Cost of Capital)" is the excess return, and "Cost of
         # Capital" is neither. The exclusions separate the three.
         ("roic", ("roc",), ("cost", "-", "bv", "eva", "capital")),
     ],
     "capexEurope.xls": [
-        # capexEurope has 10 columns and the inspector showed 8. Sales to
-        # invested capital is the likeliest occupant of the remainder.
-        # "Net Cap Ex/Sales" also contains "sales", hence the exclusions.
+        # Sales to invested capital. "Net Cap Ex/Sales" also contains
+        # "sales", hence the exclusions.
         ("sales_to_capital", ("sales", "capital"), ("net", "cap ex", "/sales")),
     ],
     "marginEurope.xls": [
@@ -411,8 +405,8 @@ def do_industries(params: dict, cache_dir: Path, params_path: Path) -> int:
             complete = False
     if not complete:
         print("\n  A zero above means the column was not matched. The full")
-        print("  header row is printed next to it -- send me that and the")
-        print("  spec gets one line longer.")
+        print("  header row is printed next to it; adjust the keywords in")
+        print("  INDUSTRY_SPECS to match.")
     return 0
 
 
@@ -420,6 +414,15 @@ def do_countries(params: dict, path: Path, params_path: Path) -> int:
     by_iso, mature, warnings = parse_ctryprem(path)
     for w in warnings:
         print(f"  WARNING: {w}")
+
+    # A rate above 1.0 means the file is in percent. Writing it would put a
+    # several-hundred-percent premium into every valuation, so nothing from
+    # this file is written at all.
+    if any((rec.get(k) or 0) > 1 for rec in by_iso.values()
+           for k in ("crp", "tax_rate", "total_erp")):
+        print("  NOT WRITTEN: the file holds percentages, not fractions. "
+              "parameters.json is unchanged.")
+        return 1
 
     wanted = [k for k in params["countries"] if not k.startswith("_")]
     filled = 0
@@ -429,9 +432,14 @@ def do_countries(params: dict, path: Path, params_path: Path) -> int:
             print(f"  {iso}: not found in the file")
             continue
         block = params["countries"][iso]
-        block["crp"] = round(rec["crp"], 6) if rec.get("crp") is not None else None
-        block["tax_rate"] = (round(rec["tax_rate"], 6)
-                             if rec.get("tax_rate") is not None else None)
+        # Only overwrite what was actually read: a column the parser could
+        # not find must not replace a good stored value with None.
+        found = {k: round(rec[k], 6) for k in ("crp", "tax_rate")
+                 if rec.get(k) is not None}
+        if not found:
+            print(f"  {iso}: no usable figures in the file")
+            continue
+        block.update(found)
         block["source"] = "Damodaran ctryprem.xlsx"
         block["as_of"] = date.today().isoformat()
         filled += 1
@@ -450,7 +458,7 @@ def do_countries(params: dict, path: Path, params_path: Path) -> int:
                            encoding="utf-8")
     print(f"\n  {filled}/{len(wanted)} countries written to {params_path}")
     print("\n  CHECK B54 BEFORE USING IT. Damodaran publishes ONE national")
-    print("  rate. The brief wants the statutory/MARGINAL rate, which in")
+    print("  rate. The model wants the statutory/MARGINAL rate, which in")
     print("  Italy adds IRAP to IRES and in Germany adds trade tax. Where")
     print("  a local surcharge applies, override the value by hand and say")
     print("  so in the `source` field.")
@@ -527,7 +535,7 @@ def main() -> int:
                    help="Set B50 to the risk-free rate, per Damodaran's "
                         "convention that terminal growth cannot exceed it")
     p.add_argument("--industries", action="store_true",
-                   help="Parse the industry files into B57 and B59")
+                   help="Parse the industry files into B57:B60")
     args = p.parse_args()
 
     if not args.params.exists():

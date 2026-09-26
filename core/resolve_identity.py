@@ -25,8 +25,8 @@ Two jobs, done together because each validates the other.
 
        weighted-average diluted shares = net income / diluted EPS
 
-   That is a weighted average, not the point-in-time count the brief asks
-   for, so it is NOT B15. Its value is as a CROSS-CHECK: when a ticker
+   That is a weighted average, not the point-in-time count B15 needs, so
+   it is NOT B15. Its value is as a CROSS-CHECK: when a ticker
    resolves to a listing whose share count disagrees with what the accounts
    imply, the mapping is wrong -- wrong entity, wrong share class, or a
    depositary receipt with a different ratio. That is the highest-risk
@@ -59,9 +59,10 @@ from datetime import date
 from pathlib import Path
 
 from cache import Cache
-from esef_extract import USER_AGENT, FactIndex, fetch_json, load_filing_index
+from esef_extract import FactIndex, fetch_json, load_filing_index
 
 import config
+from config import USER_AGENT
 import credentials
 
 GLEIF_ISIN_URL = "https://api.gleif.org/api/v1/lei-records/{lei}/isins"
@@ -212,6 +213,10 @@ def figi_map(isins: list[str], api_key: str | None,
     for i in range(0, len(todo), batch_size):
         chunk = todo[i:i + batch_size]
         jobs = [{"idType": "ID_ISIN", "idValue": s} for s in chunk]
+        # None = the request failed. Those ISINs get no listings for THIS run
+        # but nothing is cached, so the next run asks again; caching an empty
+        # answer would turn a network blip into a permanent "no listing".
+        results = None
         try:
             results = http_json(OPENFIGI_URL, payload=jobs, headers=headers)
         except urllib.error.HTTPError as e:
@@ -222,16 +227,17 @@ def figi_map(isins: list[str], api_key: str | None,
                     results = http_json(OPENFIGI_URL, payload=jobs,
                                         headers=headers)
                 except Exception:
-                    results = [{} for _ in chunk]
-            else:
-                results = [{} for _ in chunk]
+                    pass
         except (urllib.error.URLError, json.JSONDecodeError, TimeoutError):
-            results = [{} for _ in chunk]
+            pass
 
-        for isin, res in zip(chunk, results):
-            rows = res.get("data", []) if isinstance(res, dict) else []
+        for n, isin in enumerate(chunk):
+            res = results[n] if results and n < len(results) else None
+            ok = isinstance(res, dict) and "error" not in res
+            rows = res.get("data", []) if ok else []
             out[isin] = rows
-            (cache_dir / f"figi_{isin}.json").write_text(json.dumps(rows))
+            if ok:     # a real answer, including a genuine "not found"
+                (cache_dir / f"figi_{isin}.json").write_text(json.dumps(rows))
         time.sleep(pause)
 
     return out
@@ -320,13 +326,14 @@ def figi_search(name: str, country: str | None, api_key: str | None,
     if path.exists() and not refresh:
         return json.loads(path.read_text())
 
-    # One unfiltered search, then filter locally. Sending exchCode meant one
-    # request per candidate exchange and, more importantly, hid whether an
+    # One unfiltered search, then filter locally: filtering by exchCode would
+    # mean one request per candidate exchange, and would hide whether an
     # empty result was a genuine miss or a rejected filter.
     headers = {"X-OPENFIGI-APIKEY": api_key} if api_key else {}
     payload = {"query": name[:80], "marketSecDes": "Equity"}
     pause = SEARCH_PAUSE_KEYED if api_key else SEARCH_PAUSE_ANON
     rows: list[dict] = []
+    completed = False
 
     for attempt in (1, 2):
         try:
@@ -345,11 +352,12 @@ def figi_search(name: str, country: str | None, api_key: str | None,
                                 payload={**payload, "start": token},
                                 headers=headers)
                 rows.extend(doc.get("data", []) or [])
+            completed = True
             break
         except urllib.error.HTTPError as e:
             if e.code == 429 and attempt == 1:
                 # Back off and retry once. A rate limit should cost seconds,
-                # not an entity -- these were silently lost before.
+                # not an entity.
                 time.sleep(pause * 5)
                 continue
             body = ""
@@ -365,8 +373,11 @@ def figi_search(name: str, country: str | None, api_key: str | None,
 
     time.sleep(pause)
 
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(rows))
+    # Only a finished search is cached; a failed or partial one is retried
+    # next run instead of being remembered as "nothing found".
+    if completed:
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(rows))
     return rows
 
 
@@ -503,16 +514,19 @@ def main() -> int:
             # An override counts only once a human has signed it off.
             #
             # --write-review-stub pre-fills each flagged entity with the
-            # resolver's own pick. Applying those immediately meant the six
-            # cross_listing_risk warnings became six clean `manual` results
-            # on the next run -- four of them still pointing at Vienna. The
-            # stub silently blessed the answer it was written to question.
-            # A warning that switches itself off is worse than no warning.
+            # resolver's own pick. Until "reviewed" is set, that pick is NOT
+            # applied: otherwise the stub would silently bless the answer it
+            # was written to question, and the warning would switch itself
+            # off.
             ov = overrides.get(lei)
             reviewed = bool(ov and ov.get("reviewed"))
 
             if ov and ov.get("exclude"):
                 # Exclusions are only ever written by hand, never auto-filled.
+                # Any listing stored by an earlier run is removed too: with
+                # no listing a company cannot be priced or screened, which
+                # is what excluding it means.
+                db.put_listings(lei, [])
                 counts["excluded_manually"] += 1
                 print(f"excluded by override: {ov.get('note', '')[:44]}")
                 continue

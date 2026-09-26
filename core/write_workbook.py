@@ -16,8 +16,8 @@ None until something recalculates it.
 
 That turns out to be a feature. A pipeline that silently returned the
 template's demo numbers would be far more dangerous than one that returns
-nothing, and Section 13 questions 15 and 16 of the brief ask exactly this:
-how do we force a full recalculation, and how do we PROVE it happened.
+nothing. So the two questions are: how do we force a full recalculation,
+and how do we PROVE it happened.
 
 Forcing it: Excel via COM on Windows, else LibreOffice headless. Both do a
 full rebuild, not a dependency-tree refresh.
@@ -51,7 +51,7 @@ from fields import ALL_FIELDS, cell as field_cell
 
 import config
 
-# Inputs cell map. Section 7 of the brief; verified against the workbook.
+# Inputs cell map, verified against the workbook.
 IDENT = {"name": "B6", "ticker": "B7", "currency": "B8", "units": "B9",
          "fiscal_year": "B10", "valuation_date": "B11"}
 MARKET = {"price": "B14", "shares": "B15"}          # B16 is a FORMULA
@@ -147,9 +147,9 @@ def verify_conventions(ws) -> None:
     """
     Abort if the template's model conventions have drifted.
 
-    Section 7.9: the application VERIFIES these and must never write them.
-    A drifted template produces results that are not comparable across the
-    screen, and nothing downstream would reveal it.
+    The application VERIFIES these and must never write them. A drifted
+    template produces results that are not comparable across the screen,
+    and nothing downstream would reveal it.
     """
     problems = []
     for ref, expected in CONVENTIONS.items():
@@ -179,7 +179,7 @@ def write_inputs(wb, intake: dict, price: float, shares_millions: float,
     ws[IDENT["ticker"]] = ticker
     ws[IDENT["currency"]] = "EUR"
     ws[IDENT["units"]] = "Millions"
-    # Text, not numbers. Section 6: preserve the type.
+    # Text, not numbers: the template stores these as text.
     ws[IDENT["fiscal_year"]] = str(ident["fiscal_year"])
     ws[IDENT["valuation_date"]] = str(valuation_date)
 
@@ -188,14 +188,11 @@ def write_inputs(wb, intake: dict, price: float, shares_millions: float,
     # B16 is =B14*B15. Writing it would replace the formula with a constant
     # and silently decouple market cap from the price.
 
-    # Fail before writing, not after. Section 11: "If a required input
-    # cannot be obtained reliably, fail before writing the workbook rather
-    # than relying on D111 to catch it -- the workbook's gates are a
-    # backstop, not the primary control."
-    #
-    # Without this, a None reaches float() and raises TypeError, which the
-    # callers do not catch (they catch ValueError and KeyError), so one bad
-    # company-year aborts the entire batch run.
+    # Fail before writing, not after: if a required input cannot be obtained
+    # reliably, stop here rather than relying on D111 to catch it -- the
+    # workbook's gates are a backstop, not the primary control. It also
+    # turns a None into a readable ValueError instead of a TypeError deep
+    # inside float().
     blanks = [f"{f.key} FY-{4 - i}"
               for f in ALL_FIELDS
               for i, value in enumerate(intake["statements"][f.key])
@@ -461,9 +458,8 @@ def value_company(lei: str, db: Cache, params: dict, tables: dict,
     # Price age travels with the result. fetch_prices.py flags a stale quote
     # when it fetches it, but that warning lives and dies in one console
     # run: the price is written to the cache regardless, and every later
-    # valuation reads it with no idea how old it is. Section 10.1 lists
-    # stale prices among the faults the workbook explicitly does NOT cover,
-    # so it has to be carried here.
+    # valuation reads it with no idea how old it is. The workbook has no
+    # check for a stale price, so the age has to be carried here.
     price_as_of = price_row.get("as_of")
     try:
         price_age_days = (date.today() - date.fromisoformat(price_as_of)).days
@@ -471,7 +467,10 @@ def value_company(lei: str, db: Cache, params: dict, tables: dict,
         price_age_days = None
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    target = out_dir / f"{ticker}_{date.today().isoformat()}.xlsx"
+    # Ticker AND exchange: a ticker is only unique on its own exchange, and
+    # two companies sharing one would overwrite each other's workbook.
+    target = out_dir / (f"{ticker}_{listing.get('exchange') or 'XX'}_"
+                        f"{date.today().isoformat()}.xlsx")
     shutil.copy(template, target)
 
     wb = openpyxl.load_workbook(target)
@@ -619,9 +618,9 @@ def main() -> int:
             if example:
                 print(f"  e.g. {example} still needs: "
                       f"{', '.join(gaps[example])}")
-            print("\n  The usual gap is the industry mapping. Fill ONE row of")
-            print("  industries.csv, import it, and run again -- a single")
-            print("  mapped company is enough to prove the whole chain.")
+            print("\n  The usual gap is the industry mapping. Map one company")
+            print("  (python core/industry_worksheet.py --classify) and run")
+            print("  again -- a single mapped company proves the whole chain.")
             return 1
 
         targets = ready

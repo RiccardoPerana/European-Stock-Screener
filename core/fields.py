@@ -20,8 +20,8 @@ answer:
 
   2. The extractor failed to find it. The tag was an extension element,
      or the label was unusual, or the statement was laid out oddly.
-     Zero here is a fabrication, and Section 11 of the brief forbids
-     inventing financial data.
+     Zero here is a fabrication, and the pipeline never invents financial
+     data.
 
 The two are indistinguishable from the outside: both look like a missing
 tag. So this module splits the fields by `absence` policy, and every
@@ -30,15 +30,13 @@ assumed zero is recorded in provenance with derivation='assumed_zero'.
 That gives you a measurable rate rather than a hidden assumption. If a
 company-year needs six assumed zeros to reach 100 cells, that is not a
 valuation you should trust, and the cache lets you count it and set a
-threshold. See Cache.assumed_zero_report().
+threshold: Cache.field_failure_report() gives the rate per field.
 
 TAXONOMY ELEMENTS
 -----------------
-The `elements` lists are CANDIDATE ifrs-full taxonomy element names, in
-priority order. They are researched but NOT YET VALIDATED against real
-filings -- that happens when the extractor runs against the 426 and we
-measure hit rates per field. Expect the composite fields (debt, capex,
-EBIT) to need work; IFRS mandates no operating-profit subtotal, so
+The `elements` lists are ifrs-full taxonomy element names, in priority
+order. The composite fields (debt, capex, EBIT) lean on the fallback tiers
+below them: IFRS mandates no operating-profit subtotal, so
 ProfitLossFromOperatingActivities is optional and widely extended.
 """
 
@@ -93,21 +91,15 @@ class Field:
     sign: Sign
     elements: tuple[str, ...]
     """Candidate taxonomy elements, highest priority first."""
-    whole_of: tuple[str, ...] = ()
-    """Elements that represent the ENTIRE field on their own.
-
-    Tried before `sum_of`. Some companies report one combined line where
-    others report components separately -- capex is often a single
-    "purchases of PP&E, intangibles, investment property and other
-    non-current assets". Putting the combined element in `sum_of` would add
-    it alongside the separate lines and double the number, so it needs its
-    own tier.
-    """
     minus_of: tuple[tuple[str, ...], ...] = ()
-    """Component groups SUBTRACTED from the sum.
+    """Component groups SUBTRACTED from the `sum_of` total, in the same tier.
 
     Acquisitions are specified net of divestitures, and the taxonomy splits
-    them: cash used obtaining control, cash from losing control.
+    them: cash used obtaining control, cash from losing control. When a
+    field has `minus_of`, every component on either side is taken as a
+    MAGNITUDE: the element names already say which way the cash moved, and
+    filers disagree about the sign they tag these flows with -- a sample of
+    40 filings had both elements reported negative as well as positive.
     """
     sum_of: tuple[tuple[str, ...], ...] = ()
     """Fallback: build the field as a SUM over component GROUPS.
@@ -149,24 +141,12 @@ class Field:
     would match a cash-flow field."""
 
     pattern_prefer: tuple[str, ...] = ()
-    """Ranks pattern matches. Concepts containing ALL of these outrank ones
-    that do not, and only the top rank is considered for the exactly-one
-    rule. Kesko tags both DepreciationAmortisationAndImpairmentCharges (the
-    combined line we want) and DepreciationAccordingToPlanAdjustment; with
-    no ranking that is two matches and the field is abandoned."""
-
-    pattern_prefer: tuple[str, ...] = ()
-    """Tie-breaker. Where several concepts match, one containing ALL of
-    these outranks the rest. Kesko reports both a combined
-    DepreciationAmortisationAndImpairmentCharges line and a separate
-    DepreciationAccordingToPlanAdjustment; requiring both 'depreciat' and
-    'amorti' picks the combined line rather than abandoning the company."""
-
-    pattern_demote: tuple[str, ...] = ()
-    """Ranked below a clean match but still usable. Impairment-inclusive D&A
-    is not what row 22 wants, and lease-only interest is not gross interest,
-    but both beat losing the company entirely -- and both are recorded as
-    `extension` so they stay countable."""
+    """Tie-breaker. Concepts containing ALL of these outrank the rest, and
+    only the top rank is considered for the exactly-one rule. Kesko reports
+    both a combined DepreciationAmortisationAndImpairmentCharges line and a
+    separate DepreciationAccordingToPlanAdjustment; requiring both
+    'depreciat' and 'amorti' picks the combined line rather than abandoning
+    the company."""
 
     pattern_deny: tuple[str, ...] = ()
     """Normalised substrings that veto a pattern match. FinancialAssetsAt
@@ -427,17 +407,15 @@ CASH_FLOW = [
         row=45, statement="cashflow",
         absence=Absence.ZERO_IF_ABSENT, sign=Sign.AS_REPORTED,
         elements=(),
-        whole_of=(
-            "CashFlowsFromUsedInObtainingControlOfSubsidiariesOrOtherBusinessesClassifiedAsInvestingActivities",
-        ),
         sum_of=(
             ("CashFlowsUsedInObtainingControlOfSubsidiariesOrOtherBusinessesClassifiedAsInvestingActivities",),
         ),
         minus_of=(
             ("CashFlowsFromLosingControlOfSubsidiariesOrOtherBusinessesClassifiedAsInvestingActivities",),
         ),
-        note="Legitimately zero in any year with no M&A, which is most "
-             "years for most companies.",
+        note="Cash paid obtaining control less cash received losing it, so "
+             "positive means net buying. Legitimately zero in any year with "
+             "no M&A, which is most years for most companies.",
     ),
 ]
 
@@ -448,9 +426,6 @@ FIELD_KEYS: tuple[str, ...] = tuple(f.key for f in ALL_FIELDS)
 
 REQUIRED_KEYS = frozenset(
     f.key for f in ALL_FIELDS if f.absence is Absence.REQUIRED
-)
-ZERO_IF_ABSENT_KEYS = frozenset(
-    f.key for f in ALL_FIELDS if f.absence is Absence.ZERO_IF_ABSENT
 )
 
 # Guard rails. D111 counts exactly 100 cells over 20 fields x 5 years; if

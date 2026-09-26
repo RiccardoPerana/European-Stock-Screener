@@ -37,12 +37,7 @@ import json
 from pathlib import Path
 
 from cache import Cache
-
-
-def latest_run(out_dir: Path) -> Path | None:
-    """The most recent run_DATE.json under valuations/."""
-    runs = sorted(out_dir.glob("*/run_*.json"))
-    return runs[-1] if runs else None
+from track import iter_triggers, latest_run, leis_by_ticker
 
 
 def check(out_dir: Path, db: Cache, years: list[int]) -> list[dict]:
@@ -63,21 +58,12 @@ def check(out_dir: Path, db: Cache, years: list[int]) -> list[dict]:
         doc = json.loads(run_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return []
-    triggers = doc.get("triggers") or {}
-    if not triggers:
+    if not doc.get("triggers"):
         return []
 
-    # ticker -> lei, one pass rather than a linear scan per company.
-    by_ticker: dict[str, str] = {}
-    for lei in db.complete_entities(years):
-        listing = db.primary_listing(lei)
-        ticker = listing and listing.get("ticker")
-        if ticker:
-            by_ticker[ticker] = lei
-
+    by_ticker = leis_by_ticker(db, years)
     out = []
-    for ticker, t in triggers.items():
-        lei = by_ticker.get(ticker)
+    for lei, ticker, t in iter_triggers(doc, by_ticker.get):
         trigger_price = t.get("trigger_price")
         if not lei or trigger_price is None:
             continue

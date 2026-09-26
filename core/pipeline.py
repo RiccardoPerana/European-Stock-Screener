@@ -226,6 +226,7 @@ class RunSummary:
     run_dir: Path
     policy: dict
     parameter_fingerprint: dict
+    fiscal_years: list[int] = field(default_factory=list)
     recalc_engine: str = ""
 
     companies: list[CompanyResult] = field(default_factory=list)
@@ -306,9 +307,8 @@ class RunSummary:
         """
         Companies valued against a quote more than a week old.
 
-        Section 10.1 lists stale prices among the faults the workbook
-        explicitly does NOT cover, so nothing downstream will mention it
-        unless this does.
+        The workbook has no check for a stale price, so nothing downstream
+        will mention it unless this does.
         """
         return [c for c in self.companies
                 if isinstance(c.price_age_days, int) and c.price_age_days > 7]
@@ -318,6 +318,7 @@ class RunSummary:
         return {
             "generated_at": self.generated_at,
             "valuation_date": self.valuation_date,
+            "fiscal_years": self.fiscal_years,
             "recalc_engine": self.recalc_engine,
             "parameter_fingerprint": self.parameter_fingerprint,
             "policy": self.policy,
@@ -328,8 +329,12 @@ class RunSummary:
             "research_queue": [c.ticker for c in self.research_queue],
             "held_back_by": dict(self.suppression_counts),
             "suppression_rate": round(self.suppression_rate, 4),
+            # Keyed by LEI: a ticker is only unique on its own exchange, so
+            # two companies can share one. Readers: track.iter_triggers().
             "triggers": {
-                c.ticker: {
+                c.lei: {
+                    "lei": c.lei,
+                    "ticker": c.ticker,
                     "value_per_share": c.value_per_share,
                     "price": c.current_price,
                     "trigger_price": c.trigger_price,
@@ -339,10 +344,12 @@ class RunSummary:
                     # of re-deriving it from value_per_share/price with its
                     # own copy of UNDERVALUED_THRESHOLD.
                     "verdict": c.verdict,
-                    # Whether the research-flag policy would pass this
-                    # company on verdict alone -- what the between-screens
-                    # price update (price_update.py) needs to decide an
-                    # entry without re-running the workbook.
+                    "research_flag": c.research_flag,
+                    # Whether the model could value it, and which checks
+                    # would hold back a research flag whatever the verdict --
+                    # what the between-screens price update (price_update.py)
+                    # needs to decide an entry without re-running the
+                    # workbook.
                     "void": c.is_void,
                     "blocking_checks": c.blocking_checks,
                 }
@@ -557,6 +564,7 @@ def screen_universe(db: Cache, params: dict, tables: dict, policy: dict,
         run_dir=run_dir,
         policy=policy["research_flag"],
         parameter_fingerprint=fingerprint(*param_paths),
+        fiscal_years=list(years),
     )
 
     ready = eligible_universe(db, params, years)
