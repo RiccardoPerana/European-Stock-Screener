@@ -2,7 +2,9 @@
 # ==========================================
 #
 # Builds a single portable .exe: no installer, no registry entries, no
-# admin rights needed. Run it from `packaging/` with:
+# admin rights needed. Normally run through `python packaging/build_dist.py`,
+# which also copies the data files beside the .exe; by hand, from the
+# repository root:
 #
 #     pyinstaller packaging/app.spec --distpath packaging/dist --workpath packaging/build
 #

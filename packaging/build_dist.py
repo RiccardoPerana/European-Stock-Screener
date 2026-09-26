@@ -21,8 +21,7 @@ Deliberately NOT copied -- personal or derived, exactly what .gitignore
 already says never to commit, so a portable build should not smuggle
 them in either:
     financials.db, portfolio.db, .esef_cache/, .id_cache/, .damodaran/,
-    valuations/, out/, output/, shares.csv, industries.csv, paste_me.txt,
-    screen_config.json, the wikidata_*.json probe outputs.
+    valuations/, public/, out/, shares.csv, prices.csv, screen_config.json.
 
 A fresh copy of the .exe therefore starts with the pipeline's tracked
 config but no run history -- the coverage/extract/identity/prices/shares
