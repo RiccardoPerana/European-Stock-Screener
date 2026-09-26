@@ -75,18 +75,14 @@ class TaskState:
 
 class _Capture(io.TextIOBase):
     """
-    Collects print() output from code that has not moved to logging yet.
-
-    The ingestion scripts still print directly. Rather than rewrite them
-    all before the interface can exist, their output is captured and shown
-    in the activity panel. When they move to logging this goes away.
+    Collects print() output from the ingestion scripts, which report their
+    progress by printing, and shows it in the activity panel.
 
     ROUTED BY THREAD, NOT PROCESS-WIDE.
     sys.stdout is a single process-level object, so redirect_stdout()
     captures EVERY thread while the redirect is active -- including the
     HTTP server's own request logging, which would then appear in the
-    activity panel as though the screen had printed it. A test caught it
-    doing exactly that.
+    activity panel as though the screen had printed it.
 
     So this proxy checks which thread is writing. The worker's output is
     captured; anything else passes through to the real stream untouched.

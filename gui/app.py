@@ -32,12 +32,15 @@ stays small and predictable.
 
 SECURITY
 --------
-Binds to 127.0.0.1 only, so nothing on the network can reach it. Requests
-that change state or read settings are checked against the Host header:
-any page on the internet can send your browser to http://localhost:8765,
-so without that check a website you happened to visit could start a scan
-or read back your configuration. API keys are never returned by any route
--- only whether one is set, and where it came from.
+Binds to 127.0.0.1 only, so nothing on the network can reach it. Every
+request is checked against the Host header, and against Origin when the
+browser sends one: any page on the internet can send your browser to
+http://localhost:8765, so without that check a website you happened to
+visit could start a scan or read back your configuration. Actions that
+fetch or write anything are POSTs. The one exception is viewing the
+Portfolio page, which applies the latest screen to the portfolio and
+refreshes held prices once a day -- both idempotent. API keys are never
+returned by any route -- only whether one is set, and where it came from.
 """
 
 from __future__ import annotations
@@ -83,10 +86,9 @@ def _excel_installed() -> bool:
 
     pywin32 is bundled into the frozen .exe (see packaging/app.spec), so
     find_spec("win32com") succeeds on every machine the app runs on,
-    whether or not Excel is actually installed there. That let this
-    check report "Ready" on a computer with no Excel at all: the job
-    started, ran every earlier stage, and only discovered there was
-    nothing to recalculate with once it reached the first company.
+    whether or not Excel is actually installed there -- on its own it
+    would report "Ready" and let a job run every earlier stage before
+    finding nothing to recalculate with at the first company.
     Checking the Excel.Application ProgID is the same lookup pywin32
     itself has to make inside DispatchEx() -- so failing here means
     DispatchEx() would fail too, without spending the time to find that
@@ -197,12 +199,9 @@ def job_screen(runner: TaskRunner, *, db: Path, out_dir: Path,
                 raise KeyboardInterrupt("stopped")
             label = result.ticker if result is not None else "skipped"
             runner.progress(done, total, label)
-            # screen_universe() itself prints nothing (pipeline.py's own
-            # design -- a silent library call), so without this the
-            # activity panel showed the sliding bar and nothing else for
-            # the whole run. say() is what actually reaches the panel;
-            # progress() alone only drives the percentage and the label
-            # next to it.
+            # screen_universe() itself prints nothing, so this line is the
+            # activity panel's only per-company output. say() reaches the
+            # panel; progress() only drives the percentage and its label.
             runner.say(f"[{done:>4}/{total}] {label}"
                       + (f" — {result.verdict}" if result is not None else ""))
 
@@ -239,11 +238,10 @@ def job_screen(runner: TaskRunner, *, db: Path, out_dir: Path,
     }
 
 
-# The ingestion stages are still scripts with a main(). Rather than
-# rewrite six of them before Settings can drive them, each is invoked
-# in-process with the argv it expects. Output is captured by the runner and
-# appears in the activity panel, so the interface shows the same detail the
-# terminal did.
+# The ingestion stages are command-line scripts with a main(). Each is
+# invoked in-process with the argv it expects; its output is captured by the
+# runner and appears in the activity panel, so the interface shows the same
+# detail the terminal would.
 #
 # In-process rather than subprocess on purpose: a subprocess would not
 # inherit the captured stdout, so the panel would sit empty for minutes
@@ -471,6 +469,11 @@ class Handler(BaseHTTPRequestHandler):
             return self._server_error(route, e)
 
     def _get(self, route: str) -> None:
+        if not self._host_is_local():
+            # A page served from some other name that resolves to 127.0.0.1
+            # (DNS rebinding) would otherwise be able to read these pages.
+            return self.json({"error": "requests must come from this "
+                                       "computer"}, 403)
         app = self.app
 
         # Any of these means a window is open and watching.
@@ -487,8 +490,6 @@ class Handler(BaseHTTPRequestHandler):
             return self.json(app.runner.snapshot())
         if route == "/api/industry-prompt":
             return self.json(app.industry_prompt())
-        if route == "/api/tables-check":
-            return self.json(app.tables_check())
         if route == "/results":
             page = app.render_results()
             if page is None:
@@ -529,6 +530,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.json(*app.apply_industry_map(data.get("text", "")))
         if route == "/api/industry-classify-gemini":
             return self.json(*app.industry_classify_gemini())
+        if route == "/api/tables-check":
+            return self.json(app.tables_check())
         if route == "/api/tables-apply":
             return self.json(*app.tables_apply())
         return self.json({"error": "unknown request"}, 404)
@@ -985,7 +988,7 @@ class App:
         """Write the tables_check() result that is still stashed."""
         import fetch_ratings
 
-        fetched = getattr(self, "_tables_fetch", None)
+        fetched = self._tables_fetch
         if not fetched:
             return {"error": "Check for an update first."}, 400
         result = fetch_ratings.apply(config.TABLES_PATH, fetched)

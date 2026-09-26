@@ -12,14 +12,14 @@ A count of companies ready to value raises the obvious question: where
 does that number come from? Eight stages run before a valuation is
 possible and each goes stale on its own schedule. Showing only some of
 them cannot explain why the count is 170 rather than 400, and cannot warn
-that the credit spread ladder is fourteen months old and about to fail
-every workbook.
+that the credit spread ladder is fourteen months old and about to put a
+warning on every workbook.
 
-So the dashboard lists all eight, in order, with what each produced, when
-it last ran, and whether it is due -- read-only, notifications and
-nothing else. Fixing anything happens on Settings, which lists the same
-eight stages next to the button that updates each one, whether or not it
-is already current. Splitting them means landing on the app always
+So the dashboard reports every stage that needs attention, with what it
+produced, when it last ran, and whether it is due -- read-only,
+notifications and nothing else. Fixing anything happens on Settings, which
+lists every stage next to the button that updates it, whether or not it is
+already current. Splitting them means landing on the app always
 answers "does anything need attention" before it answers "how do I
 change it" -- the two questions do not compete for the same screen.
 
@@ -34,7 +34,7 @@ with one deliberate exception: "Run everything" gets its own warm
 accent, because it is the one button that touches the whole pipeline
 rather than a single stage, not a general second accent in use
 elsewhere. Health and verdict colours (the stage dots, stale warnings,
-BUY/SELL) are a further, semantic layer on top: green/red carry a
+undervalued/overvalued) are a further, semantic layer on top: green/red carry a
 specific meaning (safe vs. needs attention) that the base
 palette does not specify, so they keep their own hues too.
 
@@ -537,11 +537,15 @@ document.addEventListener('click', async e => {
     msg.textContent = 'Checking…'; diffBox.textContent = '';
     applyRow.hidden = true;
     try {
-      const r = await (await fetch('/api/tables-check')).json();
+      const r = (await post('/api/tables-check')).body;
       if (r.error) { msg.textContent = r.error; return; }
       if (!r.changes.length) {
-        msg.textContent = 'Already current'
-          + (r.vintage_now ? ' (vintage ' + r.vintage_now + ').' : '.');
+        // Nothing moved, but applying still re-stamps the vintage as checked
+        // today, which keeps D122's 14-month warning from firing.
+        msg.textContent = "Matches Damodaran's site"
+          + (r.vintage_now ? ' (vintage ' + r.vintage_now + ')' : '')
+          + '. Apply to mark it as checked today.';
+        applyRow.hidden = false;
         return;
       }
       msg.textContent = r.changes.length
@@ -566,8 +570,7 @@ document.addEventListener('click', async e => {
     setTimeout(() => location.reload(), 1800);
   }
   if (e.target.id === 'stop') {
-    const r = await post('/api/cancel');
-    if (r.body && r.body.message) alert(r.body.message);
+    await post('/api/cancel');
     refresh();
   }
   const forget = e.target.dataset && e.target.dataset.forget;
@@ -611,21 +614,18 @@ def _when_text(s: dict) -> str:
     return s["date"] or "never"
 
 
-def _stage_row(s: dict, runnable: bool) -> str:
+def _stage_row(s: dict) -> str:
     """The Settings version: the same row, plus whatever updates it."""
     when = _when_text(s)
     flag = (f'<div class="flag">{s["message"]}</div>' if s["message"] else "")
     if s["key"] in ASSIST:
-        # Reveals an in-page panel rather than pointing at a terminal.
+        # Reveals an in-page panel instead of starting a job.
         button = (f'<button data-assist="{s["key"]}">{ASSIST[s["key"]]}</button>')
         if not s["done"]:
             flag = flag or f'<div class="flag">{ASSIST_NOTE[s["key"]]}</div>'
-    elif runnable:
+    else:
         button = (f'<button data-job="{s["job"]}">'
                   f'{"Update" if s["done"] else "Run"}</button>')
-    else:
-        button = ('<button class="quiet" disabled title="Run this from the '
-                  'command line for now">Terminal</button>')
     return f"""
 <div class="stage">
   <span class="dot {s['health']}" aria-hidden="true"></span>
@@ -641,12 +641,6 @@ def _stage_row(s: dict, runnable: bool) -> str:
   </div>
 </div>"""
 
-
-# Every stage the dashboard can start on its own. The rest still need the
-# command line; saying so (see RUNNABLE's use in _stage_row) is better
-# than a button that does nothing.
-RUNNABLE = {"coverage", "extract", "identity", "prices", "shares",
-            "parameters", "screen"}
 
 # Stages driven by an in-page panel rather than a one-press job.
 # Assigning industries has a person in the middle by design -- it copies a
@@ -825,7 +819,7 @@ already current. What needs attention is on the
 {STATUSBAR}
 
 <h2>The pipeline</h2>
-<div class="stages">{''.join(_stage_row(s, s['job'] in RUNNABLE)
+<div class="stages">{''.join(_stage_row(s)
                               for s in steps)}</div>
 
 <div class="assist" id="assist-industries" hidden>
@@ -862,8 +856,8 @@ already current. What needs attention is on the
   fresh from his site and compared with what is currently in
   <code>refdata_tables.json</code>. His page for the large-cap table
   carries a second, unrelated ladder right next to the one this project
-  uses, so nothing is written automatically — check the result below,
-  then apply it yourself if it looks right.</p>
+  uses, so nothing is written until you check the result below and apply
+  it. Applying an unchanged table marks it as checked today.</p>
   <div class="row">
     <button id="tables-check" class="quiet">Check Damodaran's tables</button>
     <span class="msg" id="tables-check-msg"></span>
