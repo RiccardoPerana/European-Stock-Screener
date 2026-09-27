@@ -381,36 +381,6 @@ on. The addressable universe for this screen is therefore expected to grow
 significantly from its current size over the next several years, largely
 independent of any change to the tool itself.
 
-## Results and performance analysis
-
-### Correctness and validation
-
-The regression anchor is the demo company's value per share, `DEMO.MI`
-`D83 = 11.4538271570406`: any change to the DCF routines, the Excel cell
-formulas or the five-year fiscal window shows up as a departure from it.
-
-```bash
-python tests/golden_test.py --engine excel      # or --engine libreoffice
-python -m pytest
-```
-
-`tests/golden_test.py` recalculates the shipped demo workbook and every
-negative fixture, and confirms the result against the regression anchor
-above — this proves the recalculation *engine* is correct: given known
-inputs, the workbook returns the known output. `pytest` (configured by
-`pytest.ini`) covers the cache, the extractor, the parameter parsers, the
-share-count worksheet, the CLI entry points, the dashboard job runner, the
-portfolio tracker and the report sections.
-
-Engine correctness alone does not prove that a given company's *inputs*
-were extracted correctly — twenty fields, five fiscal years, taxonomy
-element matching, sign conventions and unit scaling all sit between a
-filing and a number in the model. The extractor guards that path itself:
-every value is stored with its provenance (reported, summed, computed,
-assumed zero, sign-flipped), a company-year that contradicts itself (debt
-without interest, or interest without debt) is blocked rather than valued,
-and each run prints a per-field failure report.
-
 ### Screenshots
 
 #### Results
@@ -478,6 +448,36 @@ current, plus the two assisted workflows that need a person in the loop:
 mapping a company to a Damodaran industry (via a copy-pasted LLM prompt)
 and confirming an update to the Damodaran credit-spread ladder before it is
 written.
+
+## Results and performance analysis
+
+### Correctness and validation
+
+The regression anchor is the demo company's value per share, `DEMO.MI`
+`D83 = 11.4538271570406`: any change to the DCF routines, the Excel cell
+formulas or the five-year fiscal window shows up as a departure from it.
+
+```bash
+python tests/golden_test.py --engine excel      # or --engine libreoffice
+python -m pytest
+```
+
+`tests/golden_test.py` recalculates the shipped demo workbook and every
+negative fixture, and confirms the result against the regression anchor
+above — this proves the recalculation *engine* is correct: given known
+inputs, the workbook returns the known output. `pytest` (configured by
+`pytest.ini`) covers the cache, the extractor, the parameter parsers, the
+share-count worksheet, the CLI entry points, the dashboard job runner, the
+portfolio tracker and the report sections.
+
+Engine correctness alone does not prove that a given company's *inputs*
+were extracted correctly — twenty fields, five fiscal years, taxonomy
+element matching, sign conventions and unit scaling all sit between a
+filing and a number in the model. The extractor guards that path itself:
+every value is stored with its provenance (reported, summed, computed,
+assumed zero, sign-flipped), a company-year that contradicts itself (debt
+without interest, or interest without debt) is blocked rather than valued,
+and each run prints a per-field failure report.
 
 ## License
 
